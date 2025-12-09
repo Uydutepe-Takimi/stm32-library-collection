@@ -16,7 +16,7 @@ static_assert(false,
 );
 #endif
 
-namespace stm32 {
+namespace STM32 {
 
 class hcsr04 {
 public:
@@ -72,6 +72,6 @@ private:
 	static constexpr int new_measurement_delay = 100'000;	/* us */
 };
 
-} /* namespace stm32 */
+} /* namespace STM32 */
 
 #endif /* STM32_HCSR04_HPP */

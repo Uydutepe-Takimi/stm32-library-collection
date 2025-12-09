@@ -15,7 +15,7 @@ static_assert(false, "HAL DAC module is not enabled!");
 
 static_assert(__cplusplus >= 201703L, "C++17 required!");
 
-namespace stm32 {
+namespace STM32 {
 
 template <std::uint32_t MinOutput = 0, std::uint32_t MaxOutput = 100,
 		unsigned int DacAlignment = DAC_ALIGN_12B_R>
@@ -99,6 +99,6 @@ private:
   * led.set(100);
   */
 
-} /* namespace stm32 */
+} /* namespace STM32 */
 
 #endif /* STM32_DAC_HPP */

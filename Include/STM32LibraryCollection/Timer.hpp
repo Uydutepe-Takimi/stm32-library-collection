@@ -14,7 +14,7 @@ static_assert(false, "HAL TIM module is not enabled!");
 
 static_assert(__cplusplus >= 201703L, "C++17 required!");
 
-namespace stm32 {
+namespace STM32 {
 
 class timer {
 public:
@@ -91,6 +91,6 @@ private:
  * counter_period = 65'535;
  */
 
-} /* namespace stm32 */
+} /* namespace STM32 */
 
 #endif /* STM32_TIMER_HPP */
