@@ -16,7 +16,7 @@ static_assert(false, "HAL ADC module is not enabled!");
 
 static_assert(__cplusplus >= 201703L, "C++17 required!");
 
-namespace stm32 {
+namespace STM32 {
 
 template <std::uint32_t MinInput = 0, std::uint32_t MaxInput = 100,
 		std::uint32_t MedianFilterSize = 1,std::uint32_t TimeoutMs = 5'000>
@@ -82,6 +82,6 @@ private:
   * auto temperature = temperature_sensor.get();
   */
 
-} /* namespace stm32 */
+} /* namespace STM32 */
 
 #endif /* STM32_ADC_HPP */

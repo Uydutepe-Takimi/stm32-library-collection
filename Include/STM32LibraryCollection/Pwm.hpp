@@ -16,7 +16,7 @@ static_assert(false, "HAL TIM module is not enabled!");
 
 static_assert(__cplusplus > 201703L, "C++20 required!");
 
-namespace stm32 {
+namespace STM32 {
 #if __cpp_nontype_template_args < 201911L
 /* the compiler does not support double as a non-type template parameter */
 
@@ -228,6 +228,6 @@ using servo = pwm<0, 180, 0, 180, 90, 2.5, 12.>;
   * counter_period		 = 59'999;
   */
 
-} /* namespace stm32 */
+} /* namespace STM32 */
 
 #endif /* STM32_PWM_HPP */

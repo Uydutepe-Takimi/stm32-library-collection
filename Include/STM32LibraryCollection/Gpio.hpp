@@ -14,7 +14,7 @@ static_assert(false, "HAL GPIO module is not enabled!");
 
 static_assert(__cplusplus >= 201703L, "C++17 required!");
 
-namespace stm32 {
+namespace STM32 {
 
 inline constexpr auto Low = GPIO_PinState::GPIO_PIN_RESET;
 inline constexpr auto High = GPIO_PinState::GPIO_PIN_SET;
@@ -96,6 +96,6 @@ inline gpio_input user_button{GPIOC, GPIO_PIN_13};
  * led.write(stm32::High);
  */
 
-} /* namespace stm32 */
+} /* namespace STM32 */
 
 #endif /* STM32_GPIO_HPP */

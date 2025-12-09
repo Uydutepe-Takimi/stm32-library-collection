@@ -7,7 +7,7 @@
 #include <Gpio.hpp>
 #include <Timer.hpp>
 
-namespace stm32 {
+namespace STM32 {
 
 class l298n_linear_motor {
 public:
@@ -72,6 +72,6 @@ private:
 	timer* m_us_timer;
 };
 
-} /* namespace stm32 */
+} /* namespace STM32 */
 
 #endif /* STM32_L298N_HPP */

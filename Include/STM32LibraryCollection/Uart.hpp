@@ -99,6 +99,6 @@ using hc06 = uart<TransmitTimeout>;
   * raspberrypi.receive_to_dma(rx_message);
   */
 
-} /* namespace stm32 */
+} /* namespace STM32 */
 
 #endif /* STM32_UART_HPP */
