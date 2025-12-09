@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[DOCUMENTATION]** Docs: Add issue templates.
+
 + **[ENHANCEMENT]** Docs: Add pull request template.
 
 + **[ENHANCEMENT]** Libs: Change namespace name to STM32.
