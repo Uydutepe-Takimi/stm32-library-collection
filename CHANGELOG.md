@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Libs: Refactor GPIO class.
+
 + **[DOCUMENTATION]** Docs: Add issue templates.
 
 + **[ENHANCEMENT]** Docs: Add pull request template.
