@@ -12,8 +12,8 @@ namespace STM32 {
 class l298n_linear_motor {
 public:
 	l298n_linear_motor(
-		gpio_output& forward_pin,
-		gpio_output& backward_pin,
+		GpioOutput& forward_pin,
+		GpioOutput& backward_pin,
 		timer& us_timer) noexcept
 	: m_forward_pin{&forward_pin},
 	  m_backward_pin{&backward_pin},
@@ -34,41 +34,41 @@ public:
 
 	void backward() noexcept
 	{
-		m_forward_pin->write(Low);
-		m_backward_pin->write(High);
+		m_forward_pin->Write(GpioPinState::Low);
+		m_backward_pin->Write(GpioPinState::High);
 	}
 
 	void backward_for(std::uint32_t duration) noexcept
 	{
-		m_forward_pin->write(Low);
-		m_backward_pin->write(High);
+		m_forward_pin->Write(GpioPinState::Low);
+		m_backward_pin->Write(GpioPinState::High);
 		m_us_timer->sleep_for(duration);
 		stop();
 	}
 
 	void forward() noexcept
 	{
-		m_forward_pin->write(High);
-		m_backward_pin->write(Low);
+		m_forward_pin->Write(GpioPinState::High);
+		m_backward_pin->Write(GpioPinState::Low);
 	}
 
 	void forward_for(std::uint32_t duration) noexcept
 	{
-		m_forward_pin->write(High);
-		m_backward_pin->write(Low);
+		m_forward_pin->Write(GpioPinState::High);
+		m_backward_pin->Write(GpioPinState::Low);
 		m_us_timer->sleep_for(duration);
 		stop();
 	}
 
 	void stop() noexcept
 	{
-		m_forward_pin->write(Low);
-		m_backward_pin->write(Low);
+		m_forward_pin->Write(GpioPinState::Low);
+		m_backward_pin->Write(GpioPinState::Low);
 	}
 
 private:
-	gpio_output* m_forward_pin;
-	gpio_output* m_backward_pin;
+	GpioOutput* m_forward_pin;
+	GpioOutput* m_backward_pin;
 	timer* m_us_timer;
 };
 

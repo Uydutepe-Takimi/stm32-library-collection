@@ -22,8 +22,8 @@ class hcsr04 {
 public:
 	hcsr04(
 		timer& us_timer,
-		gpio_input& input_pin,
-		gpio_output& output_pin) noexcept
+		GpioInput& input_pin,
+		GpioOutput& output_pin) noexcept
 	: m_us_timer{&us_timer},
 	  m_input_pin{&input_pin},
 	  m_output_pin{&output_pin}
@@ -37,17 +37,17 @@ public:
 	[[nodiscard]]
 	std::uint16_t get_distance() const noexcept
 	{
-		m_output_pin->write(High);
+		m_output_pin->Write(GpioPinState::High);
 		m_us_timer->sleep_for(initial_delay);
-		m_output_pin->write(Low);
+		m_output_pin->Write(GpioPinState::Low);
 		m_us_timer->reset();
-		while (m_input_pin->read() != High){
+		while (m_input_pin->Read() != GpioPinState::High){
 			if (m_us_timer->get() >= max_counter_value){
 				return max_distance;
 			}
 		}
 		m_us_timer->reset();
-		while (m_input_pin->read() != Low){
+		while (m_input_pin->Read() != GpioPinState::Low){
 			if (m_us_timer->get() >= max_counter_value){
 				return max_distance;
 			}
@@ -62,8 +62,8 @@ public:
 
 private:
 	timer* m_us_timer;
-	gpio_input* m_input_pin;
-	gpio_output* m_output_pin;
+	GpioInput* m_input_pin;
+	GpioOutput* m_output_pin;
 
 	static constexpr auto coefficient          = 58.;
 	static constexpr int max_distance          = 400; 		/* cm */
