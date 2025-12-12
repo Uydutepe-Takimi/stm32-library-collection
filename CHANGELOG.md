@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[DOCUMENTATION]** Docs: Update README with more detailed instructions.
+
 + **[ENHANCEMENT]** Libs: Refactor GPIO class.
 
 + **[DOCUMENTATION]** Docs: Add issue templates.

@@ -52,19 +52,45 @@ Useful, header-only C++ library collection for STM32 microcontrollers.
 
     + Follow the instructions provided by the STM32CubeIDE for Visual Studio Code extension to set up the project.
 
+    + Click on `STM32CubeIDE` extension icon > `Setup STM32Cube project(s)`, then select your STM32 Board/Device and set the `Toolchain` to `CLANG`.
+
     + Rename the `main.c` file to `main.cpp` and update the MX_Application_Src from the CMakeLists.txt file.
+
+    + Add the following compile flags to the `.clangd` file in the root directory of your project as shown below:
+
+    ```
+    CompileFlags:
+      Add:
+    - '-ferror-limit=0'
+    - '-Wno-implicit-int'
+    - '-std=c++23'
+    - '-Wall'
+    - '-Wextra'
+    - '-Wfatal-errors'
+    - '-Wpedantic'
+    ```
 
 7. **Add STM32 Library Collection to Your Project**
 
     + Add STM32 Library Collection as a submodule to your project repository by running the following command in your project directory:
 
     ```bash
-    git submodule add git@github.com:oguztoraman/stm32-library-collection.git External/STM32LibraryCollection
+    git submodule add git@github.com:Uydutepe-Takimi/stm32-library-collection.git External/STM32LibraryCollection
+    ```
+
+    + Initialize and update the submodule:
+
+    ```bash
+    git submodule update --init --recursive
     ```
 
     + Add the following lines to your top-level `CMakeLists.txt` file:
 
     ```cmake
+    set(CMAKE_CXX_STANDARD 23)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+
     add_subdirectory(External/STM32LibraryCollection)
 
     target_link_libraries(${CMAKE_PROJECT_NAME}
