@@ -5,7 +5,7 @@
 #define STM32_GPIO_HPP
 
 #include <cstdint>
-#include <type_traits>
+#include <concepts>
 
 #include "main.h"
 
@@ -73,12 +73,9 @@ struct Output {};
  * @endcode
  */
 template <typename GpioTypeT>
+requires std::same_as<GpioTypeT, GpioType::Input> ||
+         std::same_as<GpioTypeT, GpioType::Output>
 class Gpio {
-    static_assert(
-        std::is_same_v<GpioTypeT, GpioType::Input> ||
-        std::is_same_v<GpioTypeT, GpioType::Output>,
-        "GpioTypeT must be either GpioType::Input or GpioType::Output"
-    );
 public:
 
     /**
@@ -122,13 +119,8 @@ public:
     /**
      * @returns State of the GPIO pin.
      */
-    template <typename T = GpioTypeT,
-        std::enable_if_t<
-            std::is_same_v<T, GpioType::Input>, bool
-        > = true
-    >
     [[nodiscard]]
-    GpioPinState Read() const noexcept
+    GpioPinState Read() const noexcept requires std::same_as<GpioTypeT, GpioType::Input>
     {
         return static_cast<GpioPinState>(
             HAL_GPIO_ReadPin(m_gpio_handle, m_pin)
@@ -138,12 +130,7 @@ public:
     /**
      * @brief Toggle the GPIO pin state.
      */
-    template <typename T = GpioTypeT,
-        std::enable_if_t<
-            std::is_same_v<T, GpioType::Output>, bool
-        > = true
-    >
-    void Toggle() noexcept
+    void Toggle() noexcept requires std::same_as<GpioTypeT, GpioType::Output>
     {
         HAL_GPIO_TogglePin(m_gpio_handle, m_pin);
     }
@@ -153,8 +140,7 @@ public:
      * 
      * @param pin_state     State to write to the GPIO pin.
      */
-    template <typename T = GpioTypeT, std::enable_if_t<std::is_same_v<T, GpioType::Output>, bool> = true>
-    void Write(GpioPinState pin_state) noexcept
+    void Write(GpioPinState pin_state) noexcept requires std::same_as<GpioTypeT, GpioType::Output>
     {
         HAL_GPIO_WritePin(
             m_gpio_handle, m_pin,
