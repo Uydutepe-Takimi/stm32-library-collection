@@ -10,7 +10,7 @@
 #include "main.h"
 
 #if !defined(HAL_GPIO_MODULE_ENABLED) /* module check */
-#error "HAL GPIO module is not enabled!
+#error "HAL GPIO module is not enabled!"
 #endif /* module check */
 
 namespace STM32 {
