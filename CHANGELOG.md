@@ -2,7 +2,7 @@
 
 ## Next Release
 
-+ **[ENHANCEMENT]** Libs: Refactor Timer class to support both IT and DMA with improving documentation.
++ **[ENHANCEMENT]** Libs: Enhance Timer class to support both IT and DMA with improving documentation.
 
 + **[ENHANCEMENT]** Libs: Separate Servo definition from Pwm.hpp to Servo.hpp.
 
