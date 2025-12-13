@@ -19,6 +19,7 @@ set(STM32LibraryCollection_INCLUDE_DIR
 
 set(STM32LibraryCollection_HEADER_FILES
     ${STM32LibraryCollection_INCLUDE_DIR}/Adc.hpp
+    ${STM32LibraryCollection_INCLUDE_DIR}/Config.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Dac.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Gpio.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Hcsr04.hpp

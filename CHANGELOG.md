@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Libs: Add Config.hpp for working mode configurations.
+
 + **[DOCUMENTATION]** Docs: Update README with more detailed instructions.
 
 + **[ENHANCEMENT]** Libs: Refactor GPIO class.
