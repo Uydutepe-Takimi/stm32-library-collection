@@ -39,6 +39,24 @@ struct Output {};
 } /* namespace GpioType */
 
 /**
+ * @brief IsGpioType, A concept to check if a type is a GpioType.
+ * 
+ * @tparam T        Type to be checked.
+ *
+ * @example Usage;
+ * @code {.cpp}
+ * #include <STM32LibraryCollection/Gpio.hpp>
+ * 
+ * static_assert(STM32::IsGpioType<STM32::GpioType::Input>);
+ * static_assert(!STM32::IsGpioType<int>);
+ * @endcode
+ */
+template <typename T>
+concept IsGpioType =
+    std::same_as<T, GpioType::Input> ||
+    std::same_as<T, GpioType::Output>;
+
+/**
  * @class Gpio, General Purpose Input/Output pin abstraction.
  * 
  * @tparam GpioTypeT Type of the GPIO pin
@@ -50,7 +68,7 @@ struct Output {};
  * @code{.cpp}
  * #include <STM32LibraryCollection/Gpio.hpp>
  *
- * STM32::GpioOutput led_pin(GPIOA, GPIO_PIN_5);
+ * STM32::GpioOutput led_pin{GPIOA, GPIO_PIN_5};
  * led_pin.Write(STM32::GpioPinState::High);
  * led_pin.Write(STM32::GpioPinState::Low);
  * @endcode
@@ -59,7 +77,7 @@ struct Output {};
  * @code{.cpp}
  * #include <STM32LibraryCollection/Gpio.hpp>
  *
- * STM32::GpioOutput led_pin(GPIOA, GPIO_PIN_5);
+ * STM32::GpioOutput led_pin{GPIOA, GPIO_PIN_5};
  * led_pin.Toogle();
  * led_pin.Toogle();
  * @endcode
@@ -68,13 +86,11 @@ struct Output {};
  * @code{.cpp}
  * #include <STM32LibraryCollection/Gpio.hpp>
  *
- * STM32::GpioInput pin(GPIOA, GPIO_PIN_5);
+ * STM32::GpioInput pin{GPIOA, GPIO_PIN_5};
  * auto state = pin.Read();
  * @endcode
  */
-template <typename GpioTypeT>
-requires std::same_as<GpioTypeT, GpioType::Input> ||
-         std::same_as<GpioTypeT, GpioType::Output>
+template <IsGpioType GpioTypeT>
 class Gpio {
 public:
 
