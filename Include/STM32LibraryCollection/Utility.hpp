@@ -65,8 +65,8 @@ concept IsConstant =
 template<typename T, T MinValueV, T MaxValueV, T DefaultValueV = MinValueV>
 struct Range {
     static_assert(
-        MinValueV <= MaxValueV,
-        "MinValueV is greater than MaxValueV"
+        MinValueV < MaxValueV,
+        "MinValueV must be less than MaxValueV"
     );
     static_assert(
         MinValueV <= DefaultValueV && DefaultValueV <= MaxValueV,

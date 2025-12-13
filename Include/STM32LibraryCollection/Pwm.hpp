@@ -40,7 +40,7 @@ struct PwmInputRangeMax : Range<std::uint32_t, MinV, MaxV> {};
 /**
  * @struct PwmInputRange, A utility struct to hold input range values for PWM. 
  * 
- * @tparam MinV         Minimum value of the range
+ * @tparam MinV         Minimum value of the range.
  * @tparam MaxV         Maximum value of the range.
  * @tparam DefaultV     Default value within the range.
  *
