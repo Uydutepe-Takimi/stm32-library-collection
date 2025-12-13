@@ -19,13 +19,16 @@ set(STM32LibraryCollection_INCLUDE_DIR
 
 set(STM32LibraryCollection_HEADER_FILES
     ${STM32LibraryCollection_INCLUDE_DIR}/Adc.hpp
+    ${STM32LibraryCollection_INCLUDE_DIR}/Config.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Dac.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Gpio.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Hcsr04.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/L298n.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Pwm.hpp
+    ${STM32LibraryCollection_INCLUDE_DIR}/Servo.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Timer.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Uart.hpp
+    ${STM32LibraryCollection_INCLUDE_DIR}/Utility.hpp
 )
 
 add_library(STM32LibraryCollection INTERFACE)
