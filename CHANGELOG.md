@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Libs: Enhance Pwm class with more readable template parameters and better documentation.
+
 + **[ENHANCEMENT]** Libs: Add Utility.hpp with Constant and Range utility structs and concepts.
 
 + **[ENHANCEMENT]** Libs: Add Config.hpp for working mode configurations.
