@@ -21,7 +21,7 @@ namespace STM32 {
 class hcsr04 {
 public:
 	hcsr04(
-		timer& us_timer,
+		Timer<WorkingMode::Blocking>& us_timer,
 		GpioInput& input_pin,
 		GpioOutput& output_pin) noexcept
 	: m_us_timer{&us_timer},
@@ -38,30 +38,30 @@ public:
 	std::uint16_t get_distance() const noexcept
 	{
 		m_output_pin->Write(GpioPinState::High);
-		m_us_timer->sleep_for(initial_delay);
+		m_us_timer->SleepFor(initial_delay);
 		m_output_pin->Write(GpioPinState::Low);
-		m_us_timer->reset();
+		m_us_timer->Reset();
 		while (m_input_pin->Read() != GpioPinState::High){
-			if (m_us_timer->get() >= max_counter_value){
+			if (m_us_timer->Get() >= max_counter_value){
 				return max_distance;
 			}
 		}
-		m_us_timer->reset();
+		m_us_timer->Reset();
 		while (m_input_pin->Read() != GpioPinState::Low){
-			if (m_us_timer->get() >= max_counter_value){
+			if (m_us_timer->Get() >= max_counter_value){
 				return max_distance;
 			}
 		}
 		auto distance = static_cast<std::uint16_t>(
-			m_us_timer->get() / coefficient
+			m_us_timer->Get() / coefficient
 		);
-		m_us_timer->sleep_for(new_measurement_delay/2);
-		m_us_timer->sleep_for(new_measurement_delay/2);
+		m_us_timer->SleepFor(new_measurement_delay/2);
+		m_us_timer->SleepFor(new_measurement_delay/2);
 		return distance;
 	}
 
 private:
-	timer* m_us_timer;
+	Timer<WorkingMode::Blocking>* m_us_timer;
 	GpioInput* m_input_pin;
 	GpioOutput* m_output_pin;
 
