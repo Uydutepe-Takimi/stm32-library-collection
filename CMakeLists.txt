@@ -27,6 +27,7 @@ set(STM32LibraryCollection_HEADER_FILES
     ${STM32LibraryCollection_INCLUDE_DIR}/Pwm.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Timer.hpp
     ${STM32LibraryCollection_INCLUDE_DIR}/Uart.hpp
+    ${STM32LibraryCollection_INCLUDE_DIR}/Utility.hpp
 )
 
 add_library(STM32LibraryCollection INTERFACE)
