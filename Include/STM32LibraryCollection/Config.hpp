@@ -7,10 +7,12 @@
 #include <concepts>
 
 namespace STM32 {
- /**
+
+/**
  * @namespace WorkingMode, Working modes for peripherals.
  */
 namespace WorkingMode {
+
 /**
  * @struct Blocking, tag for Blocking working mode.
  */
@@ -25,6 +27,7 @@ struct Interrupt {};
  * @struct DMA, tag for Direct Memory Access working mode.
  */
 struct DMA {};
+
 } /* namespace WorkingMode */
 
 /**

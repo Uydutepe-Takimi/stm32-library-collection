@@ -17,6 +17,7 @@
 #endif /* module check */
 
 namespace STM32 {
+
 /**
  * @struct PwmInputRangeMax, A utility struct to hold maximum input range values for PWM.
  * 

@@ -27,6 +27,7 @@ enum class GpioPinState {
  * @namespace GpioType, Types of GPIO pins.
  */
 namespace GpioType {
+
 /**
  * @struct Input, tag for Input GPIO pin type.
  */
@@ -36,6 +37,7 @@ struct Input {};
  * @struct Output, tag for Output GPIO pin type.
  */
 struct Output {};
+
 } /* namespace GpioType */
 
 /**

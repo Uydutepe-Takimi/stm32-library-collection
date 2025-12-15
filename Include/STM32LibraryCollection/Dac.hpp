@@ -20,6 +20,7 @@
 namespace STM32 {
 
 namespace DacAlignment {
+
 /**
  * @struct Align12BRight, tag for 12-bit right alignment.
  */
@@ -43,6 +44,7 @@ struct Align8BRight {
     static constexpr std::uint32_t alignment{DAC_ALIGN_8B_R};
     static constexpr double resolution{255.0};
 };
+
 } /* namespace DacAlignment */
 
 /**
@@ -175,6 +177,7 @@ template <
 >
 class Dac {
 public:
+
     /**
      * @brief Construct Dac class.
      * 

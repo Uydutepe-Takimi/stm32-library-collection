@@ -7,6 +7,7 @@
 #include <concepts>
 
 namespace STM32 {
+
 /**
  * @struct Constant, A utility struct to hold compile-time constant values.
  * 
