@@ -37,7 +37,7 @@ class Timer {
 public:
 
     /**
-     * @brief Construct Timer class, without DMA support.
+     * @brief Construct Timer class.
      * 
      * @param handle    Reference to the TIM handle.
      *
