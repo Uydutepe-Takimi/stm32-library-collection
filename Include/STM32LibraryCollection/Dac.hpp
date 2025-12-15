@@ -70,8 +70,8 @@ enum class DacChannel : std::uint32_t {
  */
 template <typename T>
 concept IsDacAlignment = 
-    std::same_as<typename std::remove_cv_t<decltype(T::alignment)>, std::uint32_t> &&
-    std::same_as<typename std::remove_cv_t<decltype(T::resolution)>, double> &&
+    std::same_as<std::remove_cv_t<decltype(T::alignment)>, std::uint32_t> &&
+    std::same_as<std::remove_cv_t<decltype(T::resolution)>, double> &&
     requires {
         T::alignment;
         T::resolution;

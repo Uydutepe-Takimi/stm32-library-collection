@@ -13,7 +13,7 @@ namespace STM32 {
  * @tparam T        Type of the constant value.
  * @tparam ValueV   The constant value.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Utility.hpp>
  * 
@@ -31,7 +31,7 @@ struct Constant {
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Utility.hpp>
  * 
@@ -55,7 +55,7 @@ concept IsConstant =
  * @tparam MaxValueV        Maximum value of the range.
  * @tparam DefaultValueV    Default value within the range.
  * 
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Utility.hpp>
  * 
@@ -84,7 +84,7 @@ struct Range {
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Utility.hpp>
  * 
