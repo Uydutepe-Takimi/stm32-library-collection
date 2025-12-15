@@ -14,7 +14,7 @@ public:
 	l298n_linear_motor(
 		GpioOutput& forward_pin,
 		GpioOutput& backward_pin,
-		Timer<WorkingMode::Blocking>& us_timer) noexcept
+		Timer& us_timer) noexcept
 	: m_forward_pin{&forward_pin},
 	  m_backward_pin{&backward_pin},
 	  m_us_timer{&us_timer}
@@ -69,7 +69,7 @@ public:
 private:
 	GpioOutput* m_forward_pin;
 	GpioOutput* m_backward_pin;
-	Timer<WorkingMode::Blocking>* m_us_timer;
+	Timer* m_us_timer;
 };
 
 } /* namespace STM32 */

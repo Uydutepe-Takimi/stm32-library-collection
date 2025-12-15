@@ -5,9 +5,7 @@
 #define STM32_TIMER_HPP
 
 #include <cstdint>
-#include <span>
-
-#include "Config.hpp"
+#include <utility>
 
 #include "main.h"
 
@@ -16,43 +14,25 @@
 #endif /* module check */
 
 namespace STM32 {
+
 /**
- * @class Timer, A class to manage Timer functionality on STM32 microcontrollers.
+ * @class Timer, A class to manage Blocking Mode Timer functionality on STM32 microcontrollers.
  * 
- * @tparam WorkingModeT        Working mode of the Timer
- *                             (WorkingMode::Blocking, WorkingMode::Interrupt, WorkingMode::DMA).
- *
  * @note Timer class is non-copyable and non-movable.
  *
  * @example Usage;
  * @code {.cpp}
  * #include <STM32LibraryCollection/Timer.hpp>
  *
- * using MyTimer = STM32::Timer<STM32::WorkingMode::Blocking>;
- * 
  * TIM_HandleTypeDef htim1; // Assume this is properly initialized elsewhere.
- * MyTimer timer{htim1};
+ * STM32::Timer timer{htim1};
  * timer.SleepFor(1000); // Sleep for 1000 timer ticks.
  * auto time_point = timer.Get(); // Get current timer value.
  * timer.Reset(); // Reset timer counter to 0.
  * timer.Set(500); // Set timer counter to 500.
  * timer.SleepUntil(1000); // Sleep until timer counter reaches 1000.
  * @endcode
- *
- * @example Usage with DMA;
- * @code {.cpp}
- * #include <array>
- * #include <STM32LibraryCollection/Timer.hpp>
- *
- * using MyTimerDma = STM32::Timer<STM32::WorkingMode::DMA>;
- * 
- * TIM_HandleTypeDef htim1; // Assume this is properly initialized elsewhere.
- * std::array<std::uint32_t, 256> dma_buffer{}; // DMA buffer for timer values.
- * MyTimerDma timer_dma{htim1, dma_buffer};
- * timer_dma.SleepFor(1000); // Sleep for 1000 timer ticks.
- * @endcode
  */
-template <IsWorkingMode WorkingModeT>
 class Timer {
 public:
     /**
@@ -65,34 +45,25 @@ public:
     explicit Timer(TIM_HandleTypeDef& handle) noexcept
       : m_handle{handle}
     {
-        StartTimer();
+        HAL_TIM_Base_Start(&m_handle);
     }
 
     /**
-     * @brief Construct Timer class with DMA support.
-     * 
-     * @tparam BufferLengthV    Length of the DMA buffer.
-     * 
-     * @param handle        Reference to the TIM handle.
-     * @param dma_buffer    Span representing the DMA buffer.
-     *
-     * @note Timer starts automatically upon construction.
+     * @defgroup Deleted copy and move members.
+     * @{
      */
-    template <std::uint16_t BufferLengthV>
-    Timer(TIM_HandleTypeDef& handle, std::span<std::uint32_t, BufferLengthV> dma_buffer)
-    noexcept requires std::same_as<WorkingModeT, WorkingMode::DMA>
-      : m_handle{handle},
-        m_dma_buffer{dma_buffer}
-    {
-        StartTimer();
-    }
+    Timer(const Timer&) = delete;
+    Timer& operator=(const Timer&) = delete;
+    Timer(Timer&&) = delete;
+    Timer& operator=(Timer&&) = delete;
+    /** @} */
 
     /**
      * @brief Destroy the Timer object, stops the timer.
      */
     ~Timer()
     {
-        StopTimer();
+        HAL_TIM_Base_Stop(&m_handle);
     }
 
     /**
@@ -108,9 +79,9 @@ public:
      * @returns TIM handle reference.
      */
     [[nodiscard]]
-    TIM_HandleTypeDef& GetHandle() const noexcept
+    auto&& GetHandle(this auto&& self) noexcept
     {
-        return m_handle;
+        return std::forward<decltype(self)>(self).m_handle;
     }
 
     /**
@@ -149,40 +120,18 @@ public:
      */
     void SleepUntil(std::uint32_t time_point) noexcept
     {
-        while(Get() < time_point);
+        const auto current = Get();
+        if (time_point <= current){
+            return;
+        }
+        if (time_point < current){
+            while (Get() >= current);
+        }
+        while (Get() < time_point);
     }
 
 private:
     TIM_HandleTypeDef& m_handle;
-    std::span<std::uint32_t> m_dma_buffer{};
-
-    /**
-     * @brief Start Timer based on the working mode.
-     */
-    void StartTimer() noexcept
-    {
-        if constexpr (std::same_as<WorkingModeT, WorkingMode::Blocking>){
-            HAL_TIM_Base_Start(&m_handle);
-        } else if constexpr (std::same_as<WorkingModeT, WorkingMode::Interrupt>){
-            HAL_TIM_Base_Start_IT(&m_handle);
-        } else if constexpr (std::same_as<WorkingModeT, WorkingMode::DMA>){
-            HAL_TIM_Base_Start_DMA(&m_handle, m_dma_buffer.data(), m_dma_buffer.size());
-        }
-    }
-
-    /**
-     * @brief Stop Timer based on the working mode.
-     */
-    void StopTimer() noexcept
-    {
-        if constexpr (std::same_as<WorkingModeT, WorkingMode::Blocking>){
-            HAL_TIM_Base_Stop(&m_handle);
-        } else if constexpr (std::same_as<WorkingModeT, WorkingMode::Interrupt>){
-            HAL_TIM_Base_Stop_IT(&m_handle);
-        } else if constexpr (std::same_as<WorkingModeT, WorkingMode::DMA>){
-            HAL_TIM_Base_Stop_DMA(&m_handle);
-        }
-    }
 };
 
 } /* namespace STM32 */

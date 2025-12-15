@@ -21,7 +21,7 @@ namespace STM32 {
 class hcsr04 {
 public:
 	hcsr04(
-		Timer<WorkingMode::Blocking>& us_timer,
+		Timer& us_timer,
 		GpioInput& input_pin,
 		GpioOutput& output_pin) noexcept
 	: m_us_timer{&us_timer},
@@ -61,7 +61,7 @@ public:
 	}
 
 private:
-	Timer<WorkingMode::Blocking>* m_us_timer;
+	Timer* m_us_timer;
 	GpioInput* m_input_pin;
 	GpioOutput* m_output_pin;
 
