@@ -76,6 +76,7 @@ struct Range {
     static constexpr T min_value{MinValueV};
     static constexpr T max_value{MaxValueV};
     static constexpr T default_value{DefaultValueV};
+    static constexpr T range_size{MaxValueV - MinValueV};
 };
 
 /**
@@ -96,10 +97,16 @@ concept IsRange =
     std::same_as<typename T::ValueTypeT, std::remove_cv_t<decltype(T::min_value)>> &&
     std::same_as<typename T::ValueTypeT, std::remove_cv_t<decltype(T::max_value)>> &&
     std::same_as<typename T::ValueTypeT, std::remove_cv_t<decltype(T::default_value)>> &&
+    std::same_as<typename T::ValueTypeT, std::remove_cv_t<decltype(T::range_size)>> &&
+    T::min_value < T::max_value &&
+    T::min_value <= T::default_value && T::default_value <= T::max_value &&
+    T::range_size == (T::max_value - T::min_value) &&
     requires {
         T::min_value;
         T::max_value;
         T::default_value;
+        T::range_size;
+        typename T::ValueTypeT;
     };
 
 } /* namespace STM32 */

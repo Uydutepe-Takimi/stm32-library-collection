@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Libs: Add range_size to Range struct and update IsRange concept.
+
 + **[ENHANCEMENT]** Libs: Enhance Timer class to support both IT and DMA with improving documentation.
 
 + **[ENHANCEMENT]** Libs: Separate Servo definition from Pwm.hpp to Servo.hpp.
