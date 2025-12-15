@@ -7,9 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <span>
 
-#include "Config.hpp"
 #include "Utility.hpp"
 
 #include "main.h"
@@ -25,7 +23,7 @@ namespace STM32 {
  * @tparam MinV     Minimum value of the range.
  * @tparam MaxV     Maximum value of the range.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  *
@@ -44,7 +42,7 @@ struct PwmInputRangeMax : Range<std::uint32_t, MinV, MaxV> {};
  * @tparam MaxV         Maximum value of the range.
  * @tparam DefaultV     Default value within the range.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  *
@@ -62,7 +60,7 @@ struct PwmInputRange : Range<std::uint32_t, MinV, MaxV, DefaultV> {};
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  * 
@@ -81,7 +79,7 @@ concept IsPwmInputRange =
  * @tparam MinV     Minimum value of the duty cycle (in percentage).
  * @tparam MaxV     Maximum value of the duty cycle (in percentage).
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  *
@@ -103,7 +101,7 @@ struct PwmDutyCycleRange : Range<double, MinV, MaxV> {
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  * 
@@ -119,25 +117,88 @@ concept IsPwmDutyCycleRange =
     T::max_value <= 100.;
 
 /**
- * @class Pwm, A class to manage PWM functionality on STM32 microcontrollers.
+ * @struct PwmConfig, A utility struct to hold PWM configuration.
  * 
- * @tparam WorkingModeT        Working mode of the PWM
- *                             (WorkingMode::Blocking, WorkingMode::Interrupt, WorkingMode::DMA).
- * @tparam DutyCycleRangeT     Duty cycle range for the PWM.
- * @tparam InputRangeT         Input range for the PWM.
- * @tparam InputRangeMaxT      Maximum input range for the PWM.
+ * @tparam PwmDutyCycleRangeT    Type representing the duty cycle range.
+ * @tparam PwmInputRangeT        Type representing the input range.
+ * @tparam PwmInputRangeMaxT     Type representing the maximum input range.
+ *
+ * @example Usage:
+ * @code {.cpp}
+ * #include <STM32LibraryCollection/Pwm.hpp>
+ *
+ * using MyPwmConfig = STM32::PwmConfig<
+ *     STM32::PwmDutyCycleRange<2.5, 12.0>,
+ *     STM32::PwmInputRange<0, 180, 90>,
+ *     STM32::PwmInputRangeMax<0, 180>
+ * >;
+ * @endcode
+ */
+template <
+    IsPwmDutyCycleRange PwmDutyCycleRangeT,
+    IsPwmInputRange PwmInputRangeT,
+    IsPwmInputRange PwmInputRangeMaxT
+>
+struct PwmConfig : PwmDutyCycleRangeT, PwmInputRangeT, PwmInputRangeMaxT {
+    using DutyCycleRangeT = PwmDutyCycleRangeT;
+    using InputRangeT = PwmInputRangeT;
+    using InputRangeMaxT = PwmInputRangeMaxT;
+    static_assert(
+        InputRangeT::min_value >= InputRangeMaxT::min_value &&
+        InputRangeT::max_value <= InputRangeMaxT::max_value,
+        "PwmInputRangeT must be within PwmInputRangeMaxT"
+    );
+};
+
+/**
+ * @brief IsPwmConfig, A concept to check if a type is a valid PwmConfig.
+ * 
+ * @tparam T        Type to be checked.
+ *
+ * @example Usage:
+ * @code {.cpp}
+ * #include <STM32LibraryCollection/Pwm.hpp>
+ * 
+ * using MyPwmConfig = STM32::PwmConfig<
+ *     STM32::PwmDutyCycleRange<2.5, 12.0>,
+ *     STM32::PwmInputRange<0, 180, 90>,
+ *     STM32::PwmInputRangeMax<0, 180>
+ * >;
+ * 
+ * static_assert(STM32::IsPwmConfig<MyPwmConfig>);
+ * static_assert(!STM32::IsPwmConfig<int>);
+ * @endcode
+ */
+template <typename T>
+concept IsPwmConfig =
+    IsPwmDutyCycleRange<typename T::DutyCycleRangeT> &&
+    IsPwmInputRange<typename T::InputRangeT> &&
+    IsPwmInputRange<typename T::InputRangeMaxT> &&
+    T::InputRangeT::min_value >= T::InputRangeMaxT::min_value &&
+    T::InputRangeT::max_value <= T::InputRangeMaxT::max_value &&
+    requires {
+        typename T::DutyCycleRangeT;
+        typename T::InputRangeT;
+        typename T::InputRangeMaxT;
+    };
+
+/**
+ * @class Pwm, A class to manage Blocking Mode PWM functionality on STM32 microcontrollers.
+ * 
+ * @tparam PwmConfigT   PWM configuration type.
  *
  * @note Pwm class is non-copyable and non-movable.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  * 
  * using MyPwm = STM32::Pwm<
- *     STM32::WorkingMode::Blocking,
- *     STM32::PwmDutyCycleRange<0.0, 100.0>,
- *     STM32::PwmInputRange<0, 255, 128>,
- *     STM32::PwmInputRangeMax<0, 255>
+ *     STM32::PwmConfig<
+ *         STM32::PwmDutyCycleRange<2.5, 12.0>,
+ *         STM32::PwmInputRange<0, 255, 128>,
+ *         STM32::PwmInputRangeMax<0, 255>
+ *     >
  * >;
  *
  * TIM_HandleTypeDef htim1; // Assume this is properly initialized elsewhere.
@@ -145,41 +206,13 @@ concept IsPwmDutyCycleRange =
  * pwm.Set(128); // Set PWM to mid-range value.
  * auto current_value = pwm.Get(); // Get current PWM input value.
  * @endcode
- *
- * @example Usage with DMA;
- * @code {.cpp}
- * #include <STM32LibraryCollection/Pwm.hpp>
- * #include <array>
- *
- * using MyPwmDma = STM32::Pwm<
- *     STM32::WorkingMode::DMA,
- *     STM32::PwmDutyCycleRange<0.0, 100.0>,
- *     STM32::PwmInputRange<0, 255, 128>,
- *     STM32::PwmInputRangeMax<0, 255>
- * >;
- *
- * TIM_HandleTypeDef htim1; // Assume this is properly initialized elsewhere.
- * std::array<std::uint32_t, 256> dma_buffer{}; // DMA buffer for PWM values.
- * MyPwmDma pwm_dma{htim1, TIM_CHANNEL_1, dma_buffer};
- * pwm_dma.Set(128); // Set PWM to mid-range value.
- * auto current_value_dma = pwm_dma.Get(); // Get current PWM input value.
- * @endcode
  */
-template <
-    IsWorkingMode WorkingModeT,
-    IsPwmDutyCycleRange DutyCycleRangeT,
-    IsPwmInputRange InputRangeT,
-    IsPwmInputRange InputRangeMaxT
->
+template <IsPwmConfig PwmConfigT>
 class Pwm {
-    static_assert(
-        InputRangeT::min_value >= InputRangeMaxT::min_value &&
-        InputRangeT::max_value <= InputRangeMaxT::max_value,
-        "InputRangeT must be within InputRangeMaxT"
-    );
 public:
+
     /**
-     * @brief Construct Pwm class, without DMA support.
+     * @brief Construct Pwm class.
      * 
      * @param timer_handle      Reference to the TIM handle.
      * @param timer_channel     Timer channel for PWM output.
@@ -190,50 +223,35 @@ public:
       : m_timer_handle{timer_handle},
         m_timer_channel{timer_channel}
     {
-        StartPwm();
-        Set(InputRangeT::default_value);
+        HAL_TIM_PWM_Start(&m_timer_handle, m_timer_channel);
+        Set(PwmConfigT::InputRangeT::default_value);
     }
 
     /**
-     * @brief Construct Pwm class with DMA support.
-     * 
-     * @tparam BufferLengthV    Length of the DMA buffer.
-     * 
-     * @param timer_handle      Reference to the TIM handle.
-     * @param timer_channel     Timer channel for PWM output.
-     * @param dma_buffer        Span representing the DMA buffer.
-     *
-     * @note Pwm starts automatically upon construction.
+     * @defgroup Deleted copy and move members.
+     * @{
      */
-    template <std::uint16_t BufferLengthV>
-    Pwm(
-        TIM_HandleTypeDef& timer_handle,
-        std::uint32_t timer_channel,
-        std::span<std::uint32_t, BufferLengthV> dma_buffer
-    ) noexcept requires std::same_as<WorkingModeT, WorkingMode::DMA>
-      : m_timer_handle{timer_handle},
-        m_timer_channel{timer_channel},
-        m_dma_buffer{dma_buffer}
-    {
-        StartPwm();
-        Set(InputRangeT::default_value);
-    }
+    Pwm(const Pwm&) = delete;
+    Pwm& operator=(const Pwm&) = delete;
+    Pwm(Pwm&&) = delete;
+    Pwm& operator=(Pwm&&) = delete;
+    /** @} */
 
     /**
      * @brief Destroy the Pwm object, stops PWM.
      */
     ~Pwm()
     {
-        StopPwm();
+        HAL_TIM_PWM_Stop(&m_timer_handle, m_timer_channel);
     }
 
     /**
      * @returns TIM handle reference.
      */
     [[nodiscard]]
-    TIM_HandleTypeDef& GetTimerHandle() const noexcept
+    auto&& GetTimerHandle(this auto&& self) noexcept
     {
-        return m_timer_handle;
+        return std::forward<decltype(self)>(self).m_timer_handle;
     }
 
     /**
@@ -269,8 +287,8 @@ public:
             ConvertToPwm(
                 std::clamp(
                     input,
-                    static_cast<double>(InputRangeT::min_value),
-                    static_cast<double>(InputRangeT::max_value)
+                    static_cast<double>(PwmConfigT::InputRangeT::min_value),
+                    static_cast<double>(PwmConfigT::InputRangeT::max_value)
                 )
             )
         );
@@ -279,15 +297,14 @@ public:
 private:
     TIM_HandleTypeDef& m_timer_handle;
     std::uint32_t m_timer_channel;
-    std::span<std::uint32_t> m_dma_buffer{};
     std::uint32_t m_pwm_resolution{
         m_timer_handle.Init.Period + 1
     };
     double m_min_pwm_value{
-        (m_pwm_resolution * DutyCycleRangeT::min_value) / 100.
+        (m_pwm_resolution * PwmConfigT::DutyCycleRangeT::min_value) / 100.
     };
     double m_max_pwm_value{
-        (m_pwm_resolution * DutyCycleRangeT::max_value) / 100.
+        (m_pwm_resolution * PwmConfigT::DutyCycleRangeT::max_value) / 100.
     };
     double m_pwm_value_resolution{
         m_max_pwm_value - m_min_pwm_value
@@ -305,8 +322,8 @@ private:
         return static_cast<std::uint32_t>(
             m_min_pwm_value +
             (
-                (input - InputRangeMaxT::min_value) / 
-                (InputRangeMaxT::max_value - InputRangeMaxT::min_value)
+                (input - PwmConfigT::InputRangeMaxT::min_value) / 
+                (PwmConfigT::InputRangeMaxT::range_size)
             ) *
             m_pwm_value_resolution
         );
@@ -322,40 +339,10 @@ private:
     constexpr auto ConvertToInput(int pwm_value) const noexcept
     {
         return static_cast<std::uint32_t>(std::round(
-            (InputRangeMaxT::max_value - InputRangeMaxT::min_value) *
+            (PwmConfigT::InputRangeMaxT::range_size) *
             ((pwm_value - m_min_pwm_value) / m_pwm_value_resolution)) +
-            InputRangeMaxT::min_value
+            PwmConfigT::InputRangeMaxT::min_value
         );
-    }
-
-    /**
-     * @brief Start PWM based on the working mode.
-     */
-    void StartPwm() noexcept
-    {
-        if constexpr (std::same_as<WorkingModeT, WorkingMode::Blocking>){
-            HAL_TIM_PWM_Start(&m_timer_handle, m_timer_channel);
-        } else if constexpr (std::same_as<WorkingModeT, WorkingMode::Interrupt>){
-            HAL_TIM_PWM_Start_IT(&m_timer_handle, m_timer_channel);
-        } else if constexpr (std::same_as<WorkingModeT, WorkingMode::DMA>){
-            HAL_TIM_PWM_Start_DMA(
-                &m_timer_handle, m_timer_channel, m_dma_buffer.data(), m_dma_buffer.size()
-            );
-        }
-    }
-
-    /**
-     * @brief Stop PWM based on the working mode.
-     */
-    void StopPwm() noexcept
-    {
-        if constexpr (std::same_as<WorkingModeT, WorkingMode::Blocking>){
-            HAL_TIM_PWM_Stop(&m_timer_handle, m_timer_channel);
-        } else if constexpr (std::same_as<WorkingModeT, WorkingMode::Interrupt>){
-            HAL_TIM_PWM_Stop_IT(&m_timer_handle, m_timer_channel);
-        } else if constexpr (std::same_as<WorkingModeT, WorkingMode::DMA>){
-            HAL_TIM_PWM_Stop_DMA(&m_timer_handle, m_timer_channel);
-        }
     }
 };
 

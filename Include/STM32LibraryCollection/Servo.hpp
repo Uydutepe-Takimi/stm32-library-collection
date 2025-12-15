@@ -22,10 +22,11 @@ namespace STM32 {
  * @endcode
  */
 using Servo = Pwm<
-    WorkingMode::Blocking,
-    PwmDutyCycleRange<2.5, 12.>,
-    PwmInputRange<0, 180, 90>,
-    PwmInputRangeMax<0, 180>
+    PwmConfig<
+        PwmDutyCycleRange<2.5, 12.>,
+        PwmInputRange<0, 180, 90>,
+        PwmInputRangeMax<0, 180>
+    >
 >;
 
 } /* namespace STM32 */
