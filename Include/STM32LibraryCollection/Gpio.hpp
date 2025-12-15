@@ -4,8 +4,8 @@
 #ifndef STM32_GPIO_HPP
 #define STM32_GPIO_HPP
 
-#include <cstdint>
 #include <concepts>
+#include <cstdint>
 
 #include "main.h"
 
@@ -78,8 +78,8 @@ concept IsGpioType =
  * #include <STM32LibraryCollection/Gpio.hpp>
  *
  * STM32::GpioOutput led_pin{GPIOA, GPIO_PIN_5};
- * led_pin.Toogle();
- * led_pin.Toogle();
+ * led_pin.Toggle();
+ * led_pin.Toggle();
  * @endcode
  *
  * @example Read the state of a GPIO pin.
@@ -97,11 +97,11 @@ public:
     /**
      * @brief Construct a new Gpio object.
      * 
-     * @param gpio_handle   HAL GPIO handle.
+     * @param handle        HAL GPIO handle.
      * @param pin           GPIO pin number.
      */
-    Gpio(GPIO_TypeDef* gpio_handle, std::uint16_t pin) noexcept
-        : m_gpio_handle{gpio_handle}, m_pin{pin}
+    Gpio(GPIO_TypeDef* handle, std::uint16_t pin) noexcept
+        : m_handle{handle}, m_pin{pin}
     { }
 
     /**
@@ -118,9 +118,9 @@ public:
      * @returns HAL GPIO handle.
      */
     [[nodiscard]]
-    GPIO_TypeDef* GetHandle() const noexcept
+    auto&& GetHandle(this auto&& self) noexcept
     {
-        return m_gpio_handle;
+        return std::forward<decltype(self)>(self).m_handle;
     }
 
     /**
@@ -136,19 +136,27 @@ public:
      * @returns State of the GPIO pin.
      */
     [[nodiscard]]
-    GpioPinState Read() const noexcept requires std::same_as<GpioTypeT, GpioType::Input>
+    GpioPinState Read() const noexcept
+    requires std::same_as<GpioTypeT, GpioType::Input>
     {
         return static_cast<GpioPinState>(
-            HAL_GPIO_ReadPin(m_gpio_handle, m_pin)
+            HAL_GPIO_ReadPin(m_handle, m_pin)
         );
+    }
+
+    operator GpioPinState() const noexcept
+    requires std::same_as<GpioTypeT, GpioType::Input>
+    {
+        return Read();
     }
 
     /**
      * @brief Toggle the GPIO pin state.
      */
-    void Toggle() noexcept requires std::same_as<GpioTypeT, GpioType::Output>
+    void Toggle() noexcept
+    requires std::same_as<GpioTypeT, GpioType::Output>
     {
-        HAL_GPIO_TogglePin(m_gpio_handle, m_pin);
+        HAL_GPIO_TogglePin(m_handle, m_pin);
     }
 
     /**
@@ -156,16 +164,69 @@ public:
      * 
      * @param pin_state     State to write to the GPIO pin.
      */
-    void Write(GpioPinState pin_state) noexcept requires std::same_as<GpioTypeT, GpioType::Output>
+    void Write(GpioPinState pin_state) noexcept
+    requires std::same_as<GpioTypeT, GpioType::Output>
     {
         HAL_GPIO_WritePin(
-            m_gpio_handle, m_pin,
+            m_handle, m_pin,
             static_cast<GPIO_PinState>(pin_state)
         );
     }
 
+    /**
+     * @brief Assignment operator to write the GPIO pin state.
+     * 
+     * @param state     State to write to the GPIO pin.
+     * 
+     * @returns Reference to the current Gpio object.
+     */
+    Gpio& operator=(GpioPinState state) noexcept
+    requires std::same_as<GpioTypeT, GpioType::Output>
+    {
+        Write(state);
+        return *this;
+    }
+
+    /**
+     * @brief Set the GPIO pin to High state.
+     */
+    void High() noexcept
+    requires std::same_as<GpioTypeT, GpioType::Output>
+    {
+        Write(GpioPinState::High);
+    }
+
+    /**
+     * @brief Set the GPIO pin to Low state.
+     */
+    void Low() noexcept
+    requires std::same_as<GpioTypeT, GpioType::Output>
+    {
+        Write(GpioPinState::Low);
+    }
+
+    /**
+     * @returns True if the GPIO pin is in High state.
+     */
+    [[nodiscard]]
+    bool IsHigh() const noexcept
+    requires std::same_as<GpioTypeT, GpioType::Input>
+    {
+        return Read() == GpioPinState::High;
+    }
+
+    /**
+     * @returns True if the GPIO pin is in Low state.
+     */
+    [[nodiscard]]
+    bool IsLow() const noexcept
+    requires std::same_as<GpioTypeT, GpioType::Input>
+    {
+        return Read() == GpioPinState::Low;
+    }
+
 private:
-    GPIO_TypeDef* m_gpio_handle;
+    GPIO_TypeDef* m_handle;
     std::uint16_t m_pin;
 };
 
