@@ -20,7 +20,7 @@ namespace STM32 {
  * 
  * @note Timer class is non-copyable and non-movable.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Timer.hpp>
  *
@@ -35,6 +35,7 @@ namespace STM32 {
  */
 class Timer {
 public:
+
     /**
      * @brief Construct Timer class, without DMA support.
      * 
