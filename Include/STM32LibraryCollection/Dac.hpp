@@ -152,6 +152,7 @@ concept IsDacConfig =
 /**
  * @class Dac, A class to manage DAC functionality on STM32 microcontrollers.
  *
+ * @tparam DacChannelV  DAC channel to be used.
  * @tparam DacConfigT   DAC configuration type.
  *
  * @note Dac class is non-copyable and non-movable.
@@ -161,17 +162,19 @@ concept IsDacConfig =
  * #include <STM32LibraryCollection/Dac.hpp>
  *
  * using MyDac = STM32::Dac<
+ *     STM32::DacChannel::Channel1,
  *     STM32::DacConfig<
  *         STM32::DacInputMax<100>,
  *         STM32::DacAlignment::Align12BRight
  *     >
  * >;
  * DAC_HandleTypeDef hdac; // Assume this is properly initialized elsewhere.
- * MyDac led{hdac, STM32::DacChannel::Channel1};
+ * MyDac led{hdac};
  * led.Set(50); // Set DAC output to mid-range value.
  * @endcode
  */
 template <
+    DacChannel DacChannelV,
     IsDacConfig DacConfigT =
         DacConfig<DacInputMax<100>, DacAlignment::Align12BRight>
 >
@@ -182,18 +185,13 @@ public:
      * @brief Construct Dac class.
      * 
      * @param handle        Reference to the DAC handle.
-     * @param channel       DAC channel to be used.
      *
      * @note DAC is started automatically upon construction.
      */
-    Dac(
-        DAC_HandleTypeDef& handle,
-        DacChannel channel
-    ) noexcept
-      : m_handle{handle},
-        m_channel{channel}
+    explicit Dac(DAC_HandleTypeDef& handle) noexcept
+      : m_handle{handle}
     {
-        HAL_DAC_Start(&m_handle, std::to_underlying(m_channel));
+        HAL_DAC_Start(&m_handle, std::to_underlying(DacChannelV));
         Set(DacConfigT::InputRangeT::min_value);
     }
 
@@ -212,7 +210,7 @@ public:
      */
     ~Dac()
     {
-        HAL_DAC_Stop(&m_handle, std::to_underlying(m_channel));
+        HAL_DAC_Stop(&m_handle, std::to_underlying(DacChannelV));
     }
 
     /**
@@ -228,16 +226,16 @@ public:
      * @returns DAC channel.
      */
     [[nodiscard]]
-    DacChannel GetChannel() const noexcept
+    constexpr auto GetChannel() const noexcept
     {
-        return m_channel;
+        return DacChannelV;
     }
 
     /**
      * @returns DAC alignment value.
      */
     [[nodiscard]]
-    constexpr auto GetDacAlignment() const noexcept
+    constexpr auto GetAlignment() const noexcept
     {
         return DacConfigT::AlignmentT::alignment;
     }
@@ -250,7 +248,7 @@ public:
     {
         return HAL_DAC_GetValue(
             &m_handle,
-            std::to_underlying(m_channel)
+            std::to_underlying(DacChannelV)
         );
     }
 
@@ -263,7 +261,7 @@ public:
     {
         HAL_DAC_SetValue(
             &m_handle,
-            std::to_underlying(m_channel),
+            std::to_underlying(DacChannelV),
             DacConfigT::AlignmentT::alignment,
             ConvertToDac(
                 std::clamp(
@@ -277,7 +275,6 @@ public:
 
 private:
     DAC_HandleTypeDef& m_handle;
-    DacChannel m_channel;
 
     /**
      * @brief Convert output value to DAC value based on alignment.
