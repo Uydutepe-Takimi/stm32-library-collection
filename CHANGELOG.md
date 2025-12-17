@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Libs: Enhance Adc class with more readable template parameters and improved documentation.
+
 + **[ENHANCEMENT]** Libs: Enhance Dac class with more readable template parameters and better documentation.
 
 + **[ENHANCEMENT]** Libs: Add range_size to Range struct and update IsRange concept.
