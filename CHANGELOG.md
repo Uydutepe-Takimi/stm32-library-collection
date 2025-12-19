@@ -2,17 +2,17 @@
 
 ## Next Release
 
-+ **[ENHANCEMENT]** Libs: Enhance Adc class with more readable template parameters and improved documentation.
++ **[ENHANCEMENT]** Adc: Enhance Adc class with more readable template parameters and improved documentation.
 
-+ **[ENHANCEMENT]** Libs: Enhance Dac class with more readable template parameters and better documentation.
++ **[ENHANCEMENT]** Dac: Enhance Dac class with more readable template parameters and better documentation.
 
-+ **[ENHANCEMENT]** Libs: Add range_size to Range struct and update IsRange concept.
++ **[ENHANCEMENT]** Utility: Add range_size to Range struct and update IsRange concept.
 
-+ **[ENHANCEMENT]** Libs: Enhance Timer class with improving documentation.
++ **[ENHANCEMENT]** Timer: Enhance Timer class with improving documentation.
 
-+ **[ENHANCEMENT]** Libs: Separate Servo definition from Pwm.hpp to Servo.hpp.
++ **[ENHANCEMENT]** Servo: Separate Servo definition from Pwm.hpp to Servo.hpp.
 
-+ **[ENHANCEMENT]** Libs: Enhance Pwm class with more readable template parameters and better documentation.
++ **[ENHANCEMENT]** Pwm: Enhance Pwm class with more readable template parameters and better documentation.
 
 + **[ENHANCEMENT]** Libs: Add Utility.hpp with Constant and Range utility structs and concepts.
 
@@ -20,7 +20,7 @@
 
 + **[DOCUMENTATION]** Docs: Update README with more detailed instructions.
 
-+ **[ENHANCEMENT]** Libs: Refactor GPIO class.
++ **[ENHANCEMENT]** Gpio: Refactor GPIO class.
 
 + **[DOCUMENTATION]** Docs: Add issue templates.
 
