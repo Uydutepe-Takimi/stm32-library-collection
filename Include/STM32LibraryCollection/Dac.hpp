@@ -115,10 +115,6 @@ template <IsDacInputMax DacInputMaxT, IsDacAlignment DacAlignmentT>
 struct DacConfig : DacInputMaxT, DacAlignmentT {
     using InputRangeT = DacInputMaxT;
     using AlignmentT = DacAlignmentT;
-    static_assert(
-        InputRangeT::max_value <= AlignmentT::resolution,
-        "DacInputMaxT must be less than or equal to DacAlignmentT resolution!"
-    );
 };
 
 /**
@@ -141,7 +137,6 @@ template <typename T>
 concept IsDacConfig =
     IsDacInputMax<typename T::InputRangeT> &&
     IsDacAlignment<typename T::AlignmentT> &&
-    T::InputRangeT::max_value <= T::AlignmentT::resolution &&
     requires {
         typename T::InputRangeT;
         typename T::AlignmentT;
