@@ -82,7 +82,7 @@ struct AdcOutputMax : Range<double, 0., static_cast<double>(MaxV)> {};
  *
  * @example Usage;
  * @code {.cpp}
- * #include <STM32LibraryCollection/Dac.hpp>
+ * #include <STM32LibraryCollection/Adc.hpp>
  * 
  * static_assert(STM32::IsAdcOutputMax<STM32::AdcOutputMax<100>>);
  * static_assert(!STM32::IsAdcOutputMax<int>);
@@ -312,7 +312,7 @@ public:
         if (filled_size == 0){
             return 0;
         }
-        std::ranges::sort(adc_values);
+        std::ranges::sort(adc_values.begin(), adc_values.begin() + filled_size);
         return adc_values[filled_size / 2];
     }
 
