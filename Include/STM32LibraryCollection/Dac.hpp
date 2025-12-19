@@ -236,18 +236,6 @@ public:
     }
 
     /**
-     * @returns Get current DAC output value.
-     */
-    [[nodiscard]]
-    std::uint32_t Get() const noexcept
-    {
-        return HAL_DAC_GetValue(
-            &m_handle,
-            std::to_underlying(DacChannelV)
-        );
-    }
-
-    /**
      * @brief Set DAC output value.
      * 
      * @param output        Output value to be set.
