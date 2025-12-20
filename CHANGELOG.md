@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Utility: Reorganize Utility functions into separate internal headers.
+
 + **[ENHANCEMENT]** Adc: Enhance Adc class with more readable template parameters and improved documentation.
 
 + **[ENHANCEMENT]** Dac: Enhance Dac class with more readable template parameters and better documentation.

@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "Config.hpp"
-#include "Utility.hpp"
+#include "__Internal/__Utility.hpp"
 
 #include "main.h"
 
@@ -85,7 +85,7 @@ concept IsDacAlignment =
  * @tparam MaxV     Maximum input value for DAC.
  */
 template <std::uint32_t MaxV>
-struct DacInputMax : Range<double, 0., static_cast<double>(MaxV)> {};
+struct DacInputMax : __Internal::__Range<double, 0., static_cast<double>(MaxV)> {};
 
 /**
  * @brief IsDacInputMax, A concept to check if a type is a DacInputMax.
@@ -102,7 +102,7 @@ struct DacInputMax : Range<double, 0., static_cast<double>(MaxV)> {};
  */
 template <typename T>
 concept IsDacInputMax =
-    IsRange<T> &&
+    __Internal::__IsRange<T> &&
     std::same_as<typename T::ValueTypeT, double>;
 
 /**

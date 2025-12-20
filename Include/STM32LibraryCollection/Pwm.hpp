@@ -8,7 +8,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "Utility.hpp"
+#include "__Internal/__Utility.hpp"
 
 #include "main.h"
 
@@ -34,7 +34,7 @@ namespace STM32 {
  * @endcode
  */
 template <std::uint32_t MinV, std::uint32_t MaxV>
-struct PwmInputRangeMax : Range<std::uint32_t, MinV, MaxV> {};
+struct PwmInputRangeMax : __Internal::__Range<std::uint32_t, MinV, MaxV> {};
 
 /**
  * @struct PwmInputRange, A utility struct to hold input range values for PWM. 
@@ -54,7 +54,7 @@ struct PwmInputRangeMax : Range<std::uint32_t, MinV, MaxV> {};
  * @endcode
  */
 template <std::uint32_t MinV, std::uint32_t MaxV, std::uint32_t DefaultV>
-struct PwmInputRange : Range<std::uint32_t, MinV, MaxV, DefaultV> {};
+struct PwmInputRange : __Internal::__Range<std::uint32_t, MinV, MaxV, DefaultV> {};
 
 /**
  * @brief IsPwmInputRange, A concept to check if a type is a PwmInputRange.
@@ -71,7 +71,7 @@ struct PwmInputRange : Range<std::uint32_t, MinV, MaxV, DefaultV> {};
  */
 template <typename T>
 concept IsPwmInputRange =
-    STM32::IsRange<T> &&
+    __Internal::__IsRange<T> &&
     std::same_as<typename T::ValueTypeT, std::uint32_t>;
 
 /**
@@ -90,7 +90,7 @@ concept IsPwmInputRange =
  * @endcode
  */
 template <double MinV, double MaxV>
-struct PwmDutyCycleRange : Range<double, MinV, MaxV> {
+struct PwmDutyCycleRange : __Internal::__Range<double, MinV, MaxV> {
     static_assert(
         MinV >= 0.0 && MaxV <= 100.0,
         "Duty cycle values must be in the range [0.0, 100.0]"
@@ -112,7 +112,7 @@ struct PwmDutyCycleRange : Range<double, MinV, MaxV> {
  */
 template <typename T>
 concept IsPwmDutyCycleRange =
-    STM32::IsRange<T> &&
+    __Internal::__IsRange<T> &&
     std::same_as<typename T::ValueTypeT, double> &&
     T::min_value >= 0. &&
     T::max_value <= 100.;

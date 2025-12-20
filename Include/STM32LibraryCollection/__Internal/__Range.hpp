@@ -1,55 +1,17 @@
 /* SPDX-FileCopyrightText: Copyright (c) 2022-2025 Oğuz Toraman <oguz.toraman@tutanota.com> */
 /* SPDX-License-Identifier: LGPL-3.0-only */
 
-#ifndef STM32_UTILITY_HPP
-#define STM32_UTILITY_HPP
+#ifndef STM32_RANGE_HPP
+#define STM32_RANGE_HPP
 
 #include <concepts>
 
 namespace STM32 {
 
-/**
- * @struct Constant, A utility struct to hold compile-time constant values.
- * 
- * @tparam T        Type of the constant value.
- * @tparam ValueV   The constant value.
- *
- * @example Usage:
- * @code {.cpp}
- * #include <STM32LibraryCollection/Utility.hpp>
- * 
- * auto value = STM32::Constant<int, 42>::value; // value is 42.
- * @endcode
- */
-template <typename T, T ValueV>
-struct Constant {
-    using ValueTypeT = T;
-    static constexpr T value{ValueV};
-};
+namespace __Internal {
 
 /**
- * @brief IsConstant, A concept to check if a type is a Constant.
- * 
- * @tparam T        Type to be checked.
- *
- * @example Usage:
- * @code {.cpp}
- * #include <STM32LibraryCollection/Utility.hpp>
- * 
- * static_assert(STM32::IsConstant<STM32::Constant<int, 42>>);
- * static_assert(!STM32::IsConstant<int>);
- * @endcode
- */
-template <typename T>
-concept IsConstant =
-    std::same_as<typename T::ValueTypeT, std::remove_cv_t<decltype(T::value)>> &&
-    requires {
-        T::value;
-        typename T::ValueTypeT;
-    };
-
-/**
- * @struct Range, A utility struct to hold compile-time range values.
+ * @struct __Range, A utility struct to hold compile-time range values.
  * 
  * @tparam T                Type of the range values.
  * @tparam MinValueV        Minimum value of the range.
@@ -58,13 +20,13 @@ concept IsConstant =
  * 
  * @example Usage:
  * @code {.cpp}
- * #include <STM32LibraryCollection/Utility.hpp>
+ * #include <STM32LibraryCollection/__Internal/__Range.hpp>
  * 
- * using int_range = STM32::Range<int, 0, 100, 50>; // Range from 0 to 100 with default 50.
+ * using int_range = STM32::__Internal::__Range<int, 0, 100, 50>; // Range from 0 to 100 with default 50.
  * @endcode
  */
 template<typename T, T MinValueV, T MaxValueV, T DefaultValueV = MinValueV>
-struct Range {
+struct __Range {
     static_assert(
         MinValueV < MaxValueV,
         "MinValueV must be less than MaxValueV"
@@ -81,20 +43,20 @@ struct Range {
 };
 
 /**
- * @brief IsRange, A concept to check if a type is a Range.
+ * @brief __IsRange, A concept to check if a type is a Range.
  * 
  * @tparam T        Type to be checked.
  *
  * @example Usage:
  * @code {.cpp}
- * #include <STM32LibraryCollection/Utility.hpp>
+ * #include <STM32LibraryCollection/__Internal/__Range.hpp>
  * 
- * static_assert(STM32::IsRange<STM32::Range<int, 0, 100, 50>>);
- * static_assert(!STM32::IsRange<int>);
+ * static_assert(STM32::__Internal::__IsRange<STM32::__Internal::__Range<int, 0, 100, 50>>);
+ * static_assert(!STM32::__Internal::__IsRange<int>);
  * @endcode
  */
 template <typename T>
-concept IsRange =
+concept __IsRange =
     std::same_as<typename T::ValueTypeT, std::remove_cv_t<decltype(T::min_value)>> &&
     std::same_as<typename T::ValueTypeT, std::remove_cv_t<decltype(T::max_value)>> &&
     std::same_as<typename T::ValueTypeT, std::remove_cv_t<decltype(T::default_value)>> &&
@@ -110,6 +72,8 @@ concept IsRange =
         typename T::ValueTypeT;
     };
 
+} /* namespace __Internal */
+
 } /* namespace STM32 */
 
-#endif /* STM32_UTILITY_HPP */
+#endif /* STM32_RANGE_HPP */
