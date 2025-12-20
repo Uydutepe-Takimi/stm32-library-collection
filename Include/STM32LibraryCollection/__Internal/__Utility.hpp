@@ -4,6 +4,7 @@
 #ifndef STM32_UTILITY_HPP
 #define STM32_UTILITY_HPP
 
+#include "__CallbackManager.hpp"
 #include "__Constant.hpp"
 #include "__Range.hpp"
 #include "__UniqueTag.hpp"

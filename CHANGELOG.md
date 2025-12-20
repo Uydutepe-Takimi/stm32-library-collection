@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Utility: Implement callback manager for STM32 HAL peripherals.
+
 + **[ENHANCEMENT]** Utility: Add STM32_UNIQUE_TAG for unique tag type generation.
 
 + **[ENHANCEMENT]** Utility: Reorganize Utility functions into separate internal headers.
