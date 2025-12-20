@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Utility: Add STM32_UNIQUE_TAG for unique tag type generation.
+
 + **[ENHANCEMENT]** Utility: Reorganize Utility functions into separate internal headers.
 
 + **[ENHANCEMENT]** Adc: Enhance Adc class with more readable template parameters and improved documentation.

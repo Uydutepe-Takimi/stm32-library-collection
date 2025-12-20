@@ -6,5 +6,6 @@
 
 #include "__Constant.hpp"
 #include "__Range.hpp"
+#include "__UniqueTag.hpp"
 
 #endif /* STM32_UTILITY_HPP */
