@@ -4,9 +4,10 @@
 #ifndef STM32_ADC_HPP
 #define STM32_ADC_HPP
 
+#include <algorithm>
 #include <array>
 #include <cmath>
-#include <algorithm>
+#include <utility>
 
 #include "__Internal/__Utility.hpp"
 
