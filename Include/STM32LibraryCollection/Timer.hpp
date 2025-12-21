@@ -16,21 +16,35 @@
 namespace STM32 {
 
 /**
- * @class Timer, A class to manage Blocking Mode Timer functionality on STM32 microcontrollers.
+ * @class Timer, A class to manage hardware timer functionality on STM32 microcontrollers.
+ * 
+ * Provides a simple interface for time measurement and delays using hardware timers.
+ * The time unit depends on the timer's clock configuration (prescaler and clock source).
  * 
  * @note Timer class is non-copyable and non-movable.
+ * @note Timer starts automatically upon construction and stops on destruction.
+ * @note SleepFor() and SleepUntil() are blocking operations.
  *
  * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Timer.hpp>
  *
- * TIM_HandleTypeDef htim1; // Assume this is properly initialized elsewhere.
- * STM32::Timer timer{htim1};
- * timer.SleepFor(1000); // Sleep for 1000 timer ticks.
- * auto time_point = timer.Get(); // Get current timer value.
- * timer.Reset(); // Reset timer counter to 0.
- * timer.Set(500); // Set timer counter to 500.
- * timer.SleepUntil(1000); // Sleep until timer counter reaches 1000.
+ * TIM_HandleTypeDef htim2; // Assume properly initialized (e.g., 1MHz = 1us ticks)
+ * 
+ * STM32::Timer timer{htim2};
+ * 
+ * // Time measurement
+ * timer.Reset();             // Start timing
+ * // ... do something ...
+ * auto elapsed = timer.Get(); // Get elapsed ticks
+ * 
+ * // Blocking delays
+ * timer.SleepFor(1000);      // Wait for 1000 ticks (1ms at 1MHz)
+ * timer.SleepUntil(5000);    // Wait until counter reaches 5000
+ * 
+ * // Direct counter manipulation
+ * timer.Set(0);              // Set counter to specific value
+ * timer.Reset();             // Shorthand for Set(0)
  * @endcode
  */
 class Timer {
@@ -68,7 +82,9 @@ public:
     }
 
     /**
-     * @returns Current timer counter value.
+     * @brief Get current timer counter value.
+     * 
+     * @returns Current counter value in timer ticks.
      */
     [[nodiscard]]
     std::uint32_t Get() const noexcept
@@ -87,6 +103,8 @@ public:
 
     /**
      * @brief Reset the timer counter to zero.
+     * 
+     * Equivalent to Set(0).
      */
     void Reset() noexcept
     {
@@ -104,9 +122,14 @@ public:
     }
 
     /**
-     * @brief Reset the timer counter and sleep for a specific duration in timer ticks.
+     * @brief Reset the timer and block for a specific duration.
      * 
-     * @param duration      Duration in timer ticks to sleep.
+     * Resets the counter to 0, then blocks until the counter reaches the
+     * specified duration.
+     * 
+     * @param duration      Number of timer ticks to wait.
+     * 
+     * @warning This is a blocking operation.
      */
     void SleepFor(std::uint32_t duration) noexcept
     {
@@ -115,9 +138,13 @@ public:
     }
 
     /**
-     * @brief Sleep until the timer counter reaches a specific value.
+     * @brief Block until the timer counter reaches a specific value.
      * 
-     * @param time_point     Timer counter value to sleep until.
+     * If the counter has already passed the target, returns immediately.
+     * 
+     * @param time_point     Timer counter value to wait for.
+     * 
+     * @warning This is a blocking operation.
      */
     void SleepUntil(std::uint32_t time_point) noexcept
     {

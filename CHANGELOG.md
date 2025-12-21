@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[DOCUMENTATION]** Docs: Refactor documentation and improve clarity.
+
 + **[ENHANCEMENT]** Uart: Enhance Uart class with supporting different working modes, callbacks, and improved documentation.
 
 + **[ENHANCEMENT]** Utility: Implement callback manager for STM32 HAL peripherals.

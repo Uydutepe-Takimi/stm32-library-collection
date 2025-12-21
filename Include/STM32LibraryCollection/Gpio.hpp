@@ -25,17 +25,24 @@ enum class GpioPinState {
 };
 
 /**
- * @namespace GpioType, Types of GPIO pins.
+ * @namespace GpioType, Tag types for GPIO pin direction.
+ * 
+ * These tags are used as template parameters to specify whether
+ * a GPIO pin is configured as input or output at compile time.
  */
 namespace GpioType {
 
 /**
- * @struct Input, tag for Input GPIO pin type.
+ * @struct Input, Tag for input GPIO pin type.
+ * 
+ * Use this tag when creating a GPIO pin that reads external signals.
  */
 struct Input {};
 
 /**
- * @struct Output, tag for Output GPIO pin type.
+ * @struct Output, Tag for output GPIO pin type.
+ * 
+ * Use this tag when creating a GPIO pin that drives external signals.
  */
 struct Output {};
 
@@ -46,7 +53,7 @@ struct Output {};
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Gpio.hpp>
  * 
@@ -66,31 +73,30 @@ concept IsGpioType =
  *         (GpioType::Input or GpioType::Output).
  *
  * @note Gpio class is non-copyable and non-movable.
+ * @note Use the type aliases GpioInput and GpioOutput for convenience.
  *
- * @example Write to a GPIO pin.
+ * @example Usage:
  * @code{.cpp}
  * #include <STM32LibraryCollection/Gpio.hpp>
  *
- * STM32::GpioOutput led_pin{GPIOA, GPIO_PIN_5};
- * led_pin.Write(STM32::GpioPinState::High);
- * led_pin.Write(STM32::GpioPinState::Low);
- * @endcode
+ * // Output pin example - LED control
+ * STM32::GpioOutput led{GPIOA, GPIO_PIN_5};
+ * led.High();                              // Turn LED on
+ * led.Low();                               // Turn LED off
+ * led.Toggle();                            // Toggle LED state
+ * led.Write(STM32::GpioPinState::High);    // Write specific state
+ * led = STM32::GpioPinState::Low;          // Assignment operator
  *
- * @example Toggle a GPIO pin.
- * @code{.cpp}
- * #include <STM32LibraryCollection/Gpio.hpp>
- *
- * STM32::GpioOutput led_pin{GPIOA, GPIO_PIN_5};
- * led_pin.Toggle();
- * led_pin.Toggle();
- * @endcode
- *
- * @example Read the state of a GPIO pin.
- * @code{.cpp}
- * #include <STM32LibraryCollection/Gpio.hpp>
- *
- * STM32::GpioInput pin{GPIOA, GPIO_PIN_5};
- * auto state = pin.Read();
+ * // Input pin example - Button reading
+ * STM32::GpioInput button{GPIOC, GPIO_PIN_13};
+ * auto state = button.Read();              // Read pin state
+ * if (button.IsHigh()) {
+ *      // pressed
+ * }
+ * if (button.IsLow()) {
+ *      // released
+ * }
+ * STM32::GpioPinState s = button;          // Implicit conversion
  * @endcode
  */
 template <IsGpioType GpioTypeT>
@@ -147,6 +153,14 @@ public:
         );
     }
 
+    /**
+     * @brief Implicit conversion operator to GpioPinState.
+     * 
+     * Allows the GPIO input pin to be used directly in conditionals
+     * or assigned to a GpioPinState variable.
+     * 
+     * @returns State of the GPIO pin.
+     */
     operator GpioPinState() const noexcept
     requires std::same_as<GpioTypeT, GpioType::Input>
     {
@@ -234,12 +248,22 @@ private:
 };
 
 /**
- * @typedef GpioInput, GPIO pin in input mode.
+ * @typedef GpioInput, Convenience alias for GPIO pin in input mode.
+ * 
+ * @example Usage:
+ * @code{.cpp}
+ * STM32::GpioInput button{GPIOC, GPIO_PIN_13};
+ * @endcode
  */
 using GpioInput = Gpio<GpioType::Input>;
 
 /**
- * @typedef GpioOutput, GPIO pin in output mode.
+ * @typedef GpioOutput, Convenience alias for GPIO pin in output mode.
+ * 
+ * @example Usage:
+ * @code{.cpp}
+ * STM32::GpioOutput led{GPIOA, GPIO_PIN_5};
+ * @endcode
  */ 
 using GpioOutput = Gpio<GpioType::Output>;
 

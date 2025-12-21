@@ -19,10 +19,19 @@
 
 namespace STM32 {
 
+/**
+ * @namespace DacAlignment, Tag types for DAC data alignment configuration.
+ * 
+ * These tags specify how the DAC data is aligned in the data register.
+ * The alignment affects both the resolution and how data is written.
+ */
 namespace DacAlignment {
 
 /**
- * @struct Align12BRight, tag for 12-bit right alignment.
+ * @struct Align12BRight, Tag for 12-bit right-aligned data.
+ * 
+ * Data bits occupy positions 0-11. Most common alignment for 12-bit DAC.
+ * Output values range from 0 to 4095.
  */
 struct Align12BRight {
     static constexpr std::uint32_t alignment{DAC_ALIGN_12B_R};
@@ -30,7 +39,10 @@ struct Align12BRight {
 };
 
 /**
- * @struct Align12BLeft, tag for 12-bit left alignment.
+ * @struct Align12BLeft, Tag for 12-bit left-aligned data.
+ * 
+ * Data bits occupy positions 4-15. Useful for certain audio applications.
+ * Output values range from 0 to 4095.
  */
 struct Align12BLeft {
     static constexpr std::uint32_t alignment{DAC_ALIGN_12B_L};
@@ -38,7 +50,10 @@ struct Align12BLeft {
 };
 
 /**
- * @struct Align8BRight, tag for 8-bit right alignment.
+ * @struct Align8BRight, Tag for 8-bit right-aligned data.
+ * 
+ * Data bits occupy positions 0-7. Lower resolution but faster.
+ * Output values range from 0 to 255.
  */
 struct Align8BRight {
     static constexpr std::uint32_t alignment{DAC_ALIGN_8B_R};
@@ -48,7 +63,7 @@ struct Align8BRight {
 } /* namespace DacAlignment */
 
 /**
- * @brief DacChannel, Enumeration for DAC channels.
+ * @enum DacChannel, Enumeration for DAC output channels.
  */
 enum class DacChannel : std::uint32_t {
     Channel1 = DAC_CHANNEL_1,
@@ -62,7 +77,7 @@ enum class DacChannel : std::uint32_t {
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Dac.hpp>
  * 
@@ -80,9 +95,21 @@ concept IsDacAlignment =
     };
 
 /**
- * @brief DacInputMax, A utility struct to hold maximum input value for DAC.
+ * @struct DacInputMax, A utility struct to define the input value range for DAC.
  * 
- * @tparam MaxV     Maximum input value for DAC.
+ * @tparam MaxV     Maximum input value. Set() accepts values in range [0, MaxV].
+ *
+ * The input value is linearly mapped from this range to the DAC resolution.
+ * This allows you to work with meaningful units instead of raw DAC values.
+ *
+ * @example Usage:
+ * @code {.cpp}
+ * // Map 0-100 (percentage) to DAC output
+ * using PercentInput = STM32::DacInputMax<100>;
+ * 
+ * // Map 0-255 (8-bit) to DAC output
+ * using ByteInput = STM32::DacInputMax<255>;
+ * @endcode
  */
 template <std::uint32_t MaxV>
 struct DacInputMax : __Internal::__Range<double, 0., static_cast<double>(MaxV)> {};
@@ -92,7 +119,7 @@ struct DacInputMax : __Internal::__Range<double, 0., static_cast<double>(MaxV)> 
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Dac.hpp>
  * 
@@ -106,10 +133,19 @@ concept IsDacInputMax =
     std::same_as<typename T::ValueTypeT, double>;
 
 /**
- * @brief DacConfig, A utility struct to hold DAC configuration.
+ * @struct DacConfig, A utility struct to bundle DAC configuration parameters.
  * 
- * @tparam DacInputMaxT    DAC input maximum value type.
- * @tparam DacAlignmentT   DAC alignment type.
+ * @tparam DacInputMaxT    Input range configuration (0 to MaxV).
+ * @tparam DacAlignmentT   Data alignment (8-bit or 12-bit, left or right).
+ *
+ * @example Usage:
+ * @code {.cpp}
+ * // 12-bit right-aligned with 0-100 input range
+ * using MyDacConfig = STM32::DacConfig<
+ *     STM32::DacInputMax<100>,
+ *     STM32::DacAlignment::Align12BRight
+ * >;
+ * @endcode
  */
 template <IsDacInputMax DacInputMaxT, IsDacAlignment DacAlignmentT>
 struct DacConfig : DacInputMaxT, DacAlignmentT {
@@ -122,7 +158,7 @@ struct DacConfig : DacInputMaxT, DacAlignmentT {
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Dac.hpp>
  * 
@@ -147,25 +183,33 @@ concept IsDacConfig =
 /**
  * @class Dac, A class to manage DAC functionality on STM32 microcontrollers.
  *
- * @tparam DacChannelV  DAC channel to be used.
- * @tparam DacConfigT   DAC configuration type.
+ * @tparam DacChannelV  DAC channel to use (Channel1 or Channel2).
+ * @tparam DacConfigT   DAC configuration type (defaults to 0-100 input, 12-bit right-aligned).
  *
  * @note Dac class is non-copyable and non-movable.
+ * @note DAC is started automatically upon construction and stopped on destruction.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Dac.hpp>
  *
- * using MyDac = STM32::Dac<
- *     STM32::DacChannel::Channel1,
- *     STM32::DacConfig<
- *         STM32::DacInputMax<100>,
- *         STM32::DacAlignment::Align12BRight
- *     >
+ * DAC_HandleTypeDef hdac; // Assume properly initialized by CubeMX
+ *
+ * // 1. Use default configuration (0-100 input, 12-bit right-aligned)
+ * STM32::Dac<STM32::DacChannel::Channel1> dac1{hdac};
+ * dac1.Set(50);  // Set to 50% output voltage
+ *
+ * // 2. Custom configuration for LED brightness (0-255 input)
+ * using LedDacConfig = STM32::DacConfig<
+ *     STM32::DacInputMax<255>,
+ *     STM32::DacAlignment::Align12BRight
  * >;
- * DAC_HandleTypeDef hdac; // Assume this is properly initialized elsewhere.
- * MyDac led{hdac};
- * led.Set(50); // Set DAC output to mid-range value.
+ * STM32::Dac<STM32::DacChannel::Channel1, LedDacConfig> led{hdac};
+ * led.Set(128);  // Set to ~50% brightness
+ *
+ * // 3. Access configuration info
+ * auto channel = dac1.GetChannel();
+ * auto alignment = dac1.GetAlignment();
  * @endcode
  */
 template <

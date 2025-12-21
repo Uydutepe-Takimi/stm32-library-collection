@@ -9,16 +9,27 @@
 namespace STM32 {
 
 /**
- * @typedef Servo, A Servo motor control class using PWM.
+ * @typedef Servo, Pre-configured PWM class for standard servo motor control.
  * 
- * @example Usage;
+ * Configured for standard hobby servos:
+ * - Input range: 0-180 degrees (default position: 90 degrees)
+ * - Duty cycle: 2.5% - 12% (1ms - 2.4ms pulse at 50Hz)
+ * 
+ * @note Requires timer configured for 50Hz (20ms period).
+ * @note Servo class is non-copyable and non-movable.
+ * @note Servo starts at 90 degrees (center position) upon construction.
+ *
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Servo.hpp>
  * 
- * TIM_HandleTypeDef htim1; // Assume this is properly initialized elsewhere.
+ * TIM_HandleTypeDef htim1; // Assume properly initialized for 50Hz PWM
+ * 
  * STM32::Servo servo{htim1, TIM_CHANNEL_1};
- * servo.Set(90); // Set servo to mid-range position.
- * auto current_position = servo.Get(); // Get current servo position.
+ * servo.Set(0);        // Move to 0 degrees
+ * servo.Set(90);       // Move to center (90 degrees)
+ * servo.Set(180);      // Move to 180 degrees
+ * auto pos = servo.Get();  // Read current position
  * @endcode
  */
 using Servo = Pwm<

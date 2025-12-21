@@ -19,24 +19,36 @@
 
 namespace STM32 {
 
+/**
+ * @namespace AdcResolution, Tag types for ADC resolution configuration.
+ * 
+ * These tags specify the ADC hardware resolution at compile time.
+ * The resolution determines the maximum raw value the ADC can produce.
+ */
 namespace AdcResolution {
 
 /**
- * @struct Resolution12Bit, tag for 12-bit resolution.
+ * @struct Resolution12Bit, Tag for 12-bit ADC resolution.
+ * 
+ * Raw ADC values range from 0 to 4095.
  */
 struct Resolution12Bit {
     static constexpr double resolution{4095.};
 };
 
 /**
- * @struct Resolution10Bit, tag for 10-bit resolution.
+ * @struct Resolution10Bit, Tag for 10-bit ADC resolution.
+ * 
+ * Raw ADC values range from 0 to 1023.
  */
 struct Resolution10Bit {
     static constexpr double resolution{1023.};
 };
 
 /**
- * @struct Resolution8Bit, tag for 8-bit resolution.
+ * @struct Resolution8Bit, Tag for 8-bit ADC resolution.
+ * 
+ * Raw ADC values range from 0 to 255.
  */
 struct Resolution8Bit {
     static constexpr double resolution{255.};
@@ -49,7 +61,7 @@ struct Resolution8Bit {
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Adc.hpp>
  * 
@@ -65,13 +77,22 @@ concept IsAdcResolution =
     };
 
 /**
- * @brief AdcOutputMax, A utility struct to hold maximum output value for ADC.
+ * @struct AdcOutputMax, A utility struct to define the output value range for ADC.
  * 
- * @tparam MaxV     Maximum output value (Get() returns 0 to MaxV).
+ * @tparam MaxV     Maximum output value. Get() returns values in range [0, MaxV].
  *
- * @note The ADC reading is mapped from hardware resolution to this range.
+ * The ADC reading is linearly mapped from hardware resolution to this range.
+ * This allows you to work with meaningful units (e.g., percentage, temperature)
+ * instead of raw ADC values.
  *
- * @example An ADC value of 2048 (12-bit) maps to MaxV/2.
+ * @example Usage:
+ * @code {.cpp}
+ * // Map ADC to percentage (0-100)
+ * using PercentOutput = STM32::AdcOutputMax<100>;
+ * 
+ * // Map ADC to temperature range (0-330 for 0.0-3.3V at 10mV/°C)
+ * using TempOutput = STM32::AdcOutputMax<330>;
+ * @endcode
  */
 template <std::uint32_t MaxV>
 struct AdcOutputMax : __Internal::__Range<double, 0., static_cast<double>(MaxV)> {};
@@ -81,7 +102,7 @@ struct AdcOutputMax : __Internal::__Range<double, 0., static_cast<double>(MaxV)>
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Adc.hpp>
  * 
@@ -95,9 +116,23 @@ concept IsAdcOutputMax =
     std::same_as<typename T::ValueTypeT, double>;
 
 /**
- * @brief AdcMedianFilterSize, A utility struct to hold ADC median filter size.
+ * @struct AdcMedianFilterSize, A utility struct to configure median filter size.
  * 
- * @tparam SizeV    Size of the median filter (must be odd and >= 1).
+ * @tparam SizeV    Number of samples for median filtering (must be odd and >= 1).
+ *
+ * The median filter reduces noise by taking multiple ADC readings, sorting them,
+ * and returning the middle value. Larger sizes provide better noise rejection
+ * but increase read time.
+ *
+ * @note Use SizeV=1 to disable filtering (single sample).
+ * @note Typical values: 3, 5, 7 for good noise rejection.
+ *
+ * @example Usage:
+ * @code {.cpp}
+ * using NoFilter = STM32::AdcMedianFilterSize<1>;      // Single sample
+ * using LightFilter = STM32::AdcMedianFilterSize<3>;   // 3 samples
+ * using HeavyFilter = STM32::AdcMedianFilterSize<7>;   // 7 samples
+ * @endcode
  */
 template <std::uint32_t SizeV>
 struct AdcMedianFilterSize : __Internal::__Constant<std::uint32_t, SizeV> {
@@ -116,7 +151,7 @@ struct AdcMedianFilterSize : __Internal::__Constant<std::uint32_t, SizeV> {
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Adc.hpp>
  * 
@@ -132,9 +167,18 @@ concept IsAdcMedianFilterSize =
     (1 <= T::value);
 
 /**
- * @brief AdcTimeout, A utility struct to hold ADC timeout value in milliseconds.
+ * @struct AdcTimeout, A utility struct to configure ADC conversion timeout.
  * 
  * @tparam TimeoutV    Timeout value in milliseconds.
+ *
+ * If the ADC conversion does not complete within this time, the operation
+ * is aborted and returns 0.
+ *
+ * @example Usage:
+ * @code {.cpp}
+ * using FastTimeout = STM32::AdcTimeout<100>;    // 100ms timeout
+ * using SlowTimeout = STM32::AdcTimeout<5000>;   // 5 second timeout
+ * @endcode
  */
 template <std::uint32_t TimeoutV>
 struct AdcTimeout : __Internal::__Constant<std::uint32_t, TimeoutV> { };
@@ -144,7 +188,7 @@ struct AdcTimeout : __Internal::__Constant<std::uint32_t, TimeoutV> { };
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Adc.hpp>
  * 
@@ -158,12 +202,23 @@ concept IsAdcTimeout =
     std::same_as<typename T::ValueTypeT, std::uint32_t>;
 
 /**
- * @brief AdcConfig, A utility struct to hold ADC configuration.
+ * @struct AdcConfig, A utility struct to bundle all ADC configuration parameters.
  * 
- * @tparam AdcOutputMaxT        ADC output maximum value type.
- * @tparam AdcResolutionT       ADC resolution type.
- * @tparam AdcMedianFilterSizeT ADC median filter size type.
- * @tparam AdcTimeoutT          ADC timeout type.
+ * @tparam AdcOutputMaxT        Output range configuration (0 to MaxV).
+ * @tparam AdcResolutionT       Hardware resolution (8, 10, or 12 bit).
+ * @tparam AdcMedianFilterSizeT Median filter sample count.
+ * @tparam AdcTimeoutT          Conversion timeout in milliseconds.
+ *
+ * @example Usage:
+ * @code {.cpp}
+ * // Percentage output with 12-bit resolution, 5-sample filter, 1s timeout
+ * using MyAdcConfig = STM32::AdcConfig<
+ *     STM32::AdcOutputMax<100>,
+ *     STM32::AdcResolution::Resolution12Bit,
+ *     STM32::AdcMedianFilterSize<5>,
+ *     STM32::AdcTimeout<1000>
+ * >;
+ * @endcode
  */
 template <
     IsAdcOutputMax AdcOutputMaxT,
@@ -183,7 +238,7 @@ struct AdcConfig : AdcOutputMaxT, AdcResolutionT, AdcMedianFilterSizeT, AdcTimeo
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Adc.hpp>
  * 
@@ -214,25 +269,37 @@ concept IsAdcConfig =
 /**
  * @class Adc, A class to manage ADC functionality on STM32 microcontrollers.
  *
- * @tparam AdcConfigT   ADC configuration type.
+ * @tparam AdcConfigT   ADC configuration type (defaults to 12-bit, 0-100 output,
+ *                      5-sample median filter, 5s timeout).
  *
  * @note Adc class is non-copyable and non-movable.
+ * @note Uses blocking polling mode for ADC conversion.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Adc.hpp>
  *
- * using MyAdc = STM32::Adc<
- *     STM32::AdcConfig<
- *         STM32::AdcOutputMax<100>,
- *         STM32::AdcResolution::Resolution12Bit,
- *         STM32::AdcMedianFilterSize<5>,
- *         STM32::AdcTimeout<5000>
- *     >
+ * ADC_HandleTypeDef hadc1; // Assume properly initialized by CubeMX
+ *
+ * // 1. Use default configuration (0-100 output, 12-bit, 5-sample filter)
+ * STM32::Adc<> sensor1{hadc1};
+ * auto percent = sensor1.Get();     // Returns 0-100
+ *
+ * // 2. Custom configuration for temperature sensor
+ * using TempAdcConfig = STM32::AdcConfig<
+ *     STM32::AdcOutputMax<330>,                    // 0-330 (0.0-3.3V at 10mV/unit)
+ *     STM32::AdcResolution::Resolution12Bit,
+ *     STM32::AdcMedianFilterSize<7>,               // Heavy filtering for stability
+ *     STM32::AdcTimeout<1000>
  * >;
- * ADC_HandleTypeDef hadc; // Assume this is properly initialized elsewhere.
- * MyAdc sensor{hadc};
- * double value = sensor.Get(); // Get ADC value.
+ * STM32::Adc<TempAdcConfig> tempSensor{hadc1};
+ * auto temp = tempSensor.Get();     // Returns 0-330
+ *
+ * // 3. Raw ADC value without filtering
+ * auto raw = sensor1.GetRaw();      // Returns 0-4095 (12-bit)
+ *
+ * // 4. Access underlying HAL handle
+ * auto& handle = sensor1.GetHandle();
  * @endcode
  */
 template <
@@ -276,7 +343,14 @@ public:
     }
 
     /**
-     * @returns Raw ADC output value without filtering.
+     * @brief Get raw ADC value without filtering or scaling.
+     * 
+     * Performs a single ADC conversion and returns the raw hardware value.
+     * 
+     * @returns Raw ADC value (0 to resolution max), or 0 on error.
+     * 
+     * @note Returns 0 if ADC start or conversion fails.
+     * @note Use Get() for filtered and scaled output.
      */
     [[nodiscard]]
     std::uint32_t GetRaw() const noexcept
@@ -294,7 +368,16 @@ public:
     }
 
     /**
-     * @returns Current ADC output value, applying median filter.
+     * @brief Get filtered and scaled ADC value.
+     * 
+     * Takes multiple samples (defined by MedianFilterSizeT), sorts them,
+     * and returns the median value scaled to the configured output range.
+     * 
+     * @returns Scaled ADC value (0 to AdcOutputMax), or 0 on error.
+     * 
+     * @note Returns 0 if all ADC conversions fail.
+     *
+     * @note Partial failures are handled gracefully using available samples.
      */
     [[nodiscard]]
     std::uint32_t Get() const noexcept

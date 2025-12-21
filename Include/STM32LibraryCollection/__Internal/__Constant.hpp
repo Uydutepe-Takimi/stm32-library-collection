@@ -11,16 +11,29 @@ namespace STM32 {
 namespace __Internal {
 
 /**
- * @struct __Constant, A utility struct to hold compile-time constant values.
+ * @struct __Constant, A utility struct to wrap compile-time constant values as types.
+ * 
+ * This enables using constant values as template parameters and provides
+ * a uniform interface for accessing the value and its type.
  * 
  * @tparam T        Type of the constant value.
- * @tparam ValueV   The constant value.
+ * @tparam ValueV   The constant value itself.
+ *
+ * @note This is an internal class. Do not use directly in application code.
  *
  * @example Usage:
  * @code {.cpp}
- * #include <STM32LibraryCollection/__Internal/__Constant.hpp>
+ * // Define a timeout constant
+ * using Timeout100ms = STM32::__Internal::__Constant<std::uint32_t, 100>;
  * 
- * auto value = STM32::__Internal::__Constant<int, 42>::value; // value is 42.
+ * // Access the value
+ * auto timeout = Timeout100ms::value;  // 100
+ * 
+ * // Use in templates
+ * template <__IsConstant TimeoutT>
+ * void WaitFor() {
+ *     HAL_Delay(TimeoutT::value);
+ * }
  * @endcode
  */
 template <typename T, T ValueV>
@@ -30,17 +43,15 @@ struct __Constant {
 };
 
 /**
- * @brief __IsConstant, A concept to check if a type is a Constant.
+ * @brief __IsConstant, A concept to check if a type satisfies the Constant interface.
+ * 
+ * A type satisfies this concept if it provides:
+ * - `value`: A static constexpr member holding the constant.
+ * - `ValueTypeT`: A type alias for the value's type.
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage:
- * @code {.cpp}
- * #include <STM32LibraryCollection/__Internal/__Constant.hpp>
- * 
- * static_assert(STM32::__Internal::__IsConstant<STM32::__Internal::__Constant<int, 42>>);
- * static_assert(!STM32::__Internal::__IsConstant<int>);
- * @endcode
+ * @note This is an internal concept. Do not use directly in application code.
  */
 template <typename T>
 concept __IsConstant =

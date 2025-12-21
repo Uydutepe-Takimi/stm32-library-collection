@@ -20,38 +20,46 @@
 namespace STM32 {
 
 /**
- * @struct PwmInputRangeMax, A utility struct to hold maximum input range values for PWM.
+ * @struct PwmInputRangeMax, A utility struct defining the absolute limits for PWM input values.
  * 
- * @tparam MinV     Minimum value of the range.
- * @tparam MaxV     Maximum value of the range.
+ * @tparam MinV     Absolute minimum value allowed.
+ * @tparam MaxV     Absolute maximum value allowed.
+ *
+ * This defines the hardware or logical limits. PwmInputRange must be within these bounds.
  *
  * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  *
- * using MyPwmInputRangeMax = STM32::PwmInputRangeMax<0, 180>;
- * auto min_value = MyPwmInputRangeMax::min_value; // min_value is 0.
- * auto max_value = MyPwmInputRangeMax::max_value; // max_value is 180.
+ * // Servo motors typically accept 0-180 degrees
+ * using ServoRange = STM32::PwmInputRangeMax<0, 180>;
+ *
+ * // LED brightness 0-255
+ * using LedRange = STM32::PwmInputRangeMax<0, 255>;
  * @endcode
  */
 template <std::uint32_t MinV, std::uint32_t MaxV>
 struct PwmInputRangeMax : __Internal::__Range<std::uint32_t, MinV, MaxV> {};
 
 /**
- * @struct PwmInputRange, A utility struct to hold input range values for PWM. 
+ * @struct PwmInputRange, A utility struct defining the operational range for PWM input values.
  * 
- * @tparam MinV         Minimum value of the range.
- * @tparam MaxV         Maximum value of the range.
- * @tparam DefaultV     Default value within the range.
+ * @tparam MinV         Minimum operational value.
+ * @tparam MaxV         Maximum operational value.
+ * @tparam DefaultV     Default/initial value (must be within [MinV, MaxV]).
+ *
+ * This defines the range actually used by Set(). Values are clamped to this range.
+ * Must be within the bounds defined by PwmInputRangeMax.
  *
  * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  *
- * using MyPwmInputRange = STM32::PwmInputRange<0, 180, 90>;
- * auto min_value = MyPwmInputRange::min_value; // min_value is 0.
- * auto max_value = MyPwmInputRange::max_value; // max_value is 180.
- * auto default_value = MyPwmInputRange::default_value; // default_value is 90.
+ * // Servo: 0-180 degrees, starts at 90 (center)
+ * using ServoInput = STM32::PwmInputRange<0, 180, 90>;
+ *
+ * // Throttle: 0-100%, starts at 0 (off)
+ * using ThrottleInput = STM32::PwmInputRange<0, 100, 0>;
  * @endcode
  */
 template <std::uint32_t MinV, std::uint32_t MaxV, std::uint32_t DefaultV>
@@ -76,18 +84,26 @@ concept IsPwmInputRange =
     std::same_as<typename T::ValueTypeT, std::uint32_t>;
 
 /**
- * @struct PwmDutyCycleRange, A utility struct to hold duty cycle range values for PWM.
+ * @struct PwmDutyCycleRange, A utility struct defining the duty cycle range for PWM output.
  *
- * @tparam MinV     Minimum value of the duty cycle (in percentage).
- * @tparam MaxV     Maximum value of the duty cycle (in percentage).
+ * @tparam MinV     Minimum duty cycle percentage (0.0-100.0).
+ * @tparam MaxV     Maximum duty cycle percentage (0.0-100.0).
+ *
+ * The input range is linearly mapped to this duty cycle range.
+ * Common use cases:
+ * - Servo motors: 2.5% to 12.5% (1ms to 2.5ms pulse at 50Hz)
+ * - LED dimming: 0% to 100%
+ * - Motor control: 0% to 100%
  *
  * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  *
- * using MyPwmDutyCycleRange = STM32::PwmDutyCycleRange<2.5, 12.>;
- * auto min_value = MyPwmDutyCycleRange::min_value; // min_value is 2.5.
- * auto max_value = MyPwmDutyCycleRange::max_value; // max_value is 12.0.
+ * // Standard servo: 2.5% - 12.5% duty cycle
+ * using ServoDuty = STM32::PwmDutyCycleRange<2.5, 12.5>;
+ *
+ * // Full range LED: 0% - 100% duty cycle
+ * using LedDuty = STM32::PwmDutyCycleRange<0.0, 100.0>;
  * @endcode
  */
 template <double MinV, double MaxV>
@@ -119,20 +135,30 @@ concept IsPwmDutyCycleRange =
     T::max_value <= 100.;
 
 /**
- * @struct PwmConfig, A utility struct to hold PWM configuration.
+ * @struct PwmConfig, A utility struct bundling all PWM configuration parameters.
  * 
- * @tparam PwmDutyCycleRangeT    Type representing the duty cycle range.
- * @tparam PwmInputRangeT        Type representing the input range.
- * @tparam PwmInputRangeMaxT     Type representing the maximum input range.
+ * @tparam PwmDutyCycleRangeT    Duty cycle output range (in percentage).
+ * @tparam PwmInputRangeT        Operational input range with default value.
+ * @tparam PwmInputRangeMaxT     Absolute input range limits.
+ *
+ * @note PwmInputRangeT must be within bounds of PwmInputRangeMaxT.
  *
  * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
  *
- * using MyPwmConfig = STM32::PwmConfig<
- *     STM32::PwmDutyCycleRange<2.5, 12.0>,
+ * // Servo configuration: 0-180 degrees mapped to 2.5%-12.5% duty
+ * using ServoConfig = STM32::PwmConfig<
+ *     STM32::PwmDutyCycleRange<2.5, 12.5>,
  *     STM32::PwmInputRange<0, 180, 90>,
  *     STM32::PwmInputRangeMax<0, 180>
+ * >;
+ *
+ * // LED configuration: 0-255 mapped to 0%-100% duty
+ * using LedConfig = STM32::PwmConfig<
+ *     STM32::PwmDutyCycleRange<0.0, 100.0>,
+ *     STM32::PwmInputRange<0, 255, 0>,
+ *     STM32::PwmInputRangeMax<0, 255>
  * >;
  * @endcode
  */
@@ -185,28 +211,31 @@ concept IsPwmConfig =
     };
 
 /**
- * @class Pwm, A class to manage Blocking Mode PWM functionality on STM32 microcontrollers.
+ * @class Pwm, A class to manage PWM output on STM32 microcontrollers.
  * 
- * @tparam PwmConfigT   PWM configuration type.
+ * @tparam PwmConfigT   PWM configuration type defining input/output ranges.
  *
  * @note Pwm class is non-copyable and non-movable.
+ * @note PWM starts automatically upon construction with the default value.
+ * @note PWM stops automatically upon destruction.
  *
  * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Pwm.hpp>
- * 
- * using MyPwm = STM32::Pwm<
- *     STM32::PwmConfig<
- *         STM32::PwmDutyCycleRange<2.5, 12.0>,
- *         STM32::PwmInputRange<0, 255, 128>,
- *         STM32::PwmInputRangeMax<0, 255>
- *     >
- * >;
  *
- * TIM_HandleTypeDef htim1; // Assume this is properly initialized elsewhere.
- * MyPwm pwm{htim1, TIM_CHANNEL_1};
- * pwm.Set(128); // Set PWM to mid-range value.
- * auto current_value = pwm.Get(); // Get current PWM input value.
+ * TIM_HandleTypeDef htim1; // Assume properly initialized by CubeMX
+ *
+ * // LED brightness control (0-255 input, 0-100% duty)
+ * using LedPwm = STM32::Pwm<STM32::PwmConfig<
+ *     STM32::PwmDutyCycleRange<0.0, 100.0>,
+ *     STM32::PwmInputRange<0, 255, 0>,
+ *     STM32::PwmInputRangeMax<0, 255>
+ * >>;
+ * LedPwm led{htim1, TIM_CHANNEL_1};
+ * led.Set(128);                    // Set to ~50% brightness
+ * auto brightness = led.Get();     // Read current value
+ *
+ * // For servo control, use the Servo typedef instead
  * @endcode
  */
 template <IsPwmConfig PwmConfigT>

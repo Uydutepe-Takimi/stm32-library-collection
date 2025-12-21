@@ -9,22 +9,34 @@
 namespace STM32 {
 
 /**
- * @namespace WorkingMode, Working modes for peripherals.
+ * @namespace WorkingMode, Tag types for peripheral operation modes.
+ * 
+ * These tags are used as template parameters to specify the operation mode
+ * of peripherals (UART, SPI, I2C, etc.) at compile time.
  */
 namespace WorkingMode {
 
 /**
- * @struct Blocking, tag for Blocking working mode.
+ * @struct Blocking, Tag for blocking (polling) working mode.
+ * 
+ * In blocking mode, operations wait until completion before returning.
+ * Simple but blocks the CPU during the entire operation.
  */
 struct Blocking {};
 
 /**
- * @struct Interrupt, tag for Interrupt working mode.
+ * @struct Interrupt, Tag for interrupt-driven working mode.
+ * 
+ * In interrupt mode, operations return immediately and trigger
+ * a callback when complete. More efficient than blocking.
  */
 struct Interrupt {};
 
 /**
- * @struct DMA, tag for Direct Memory Access working mode.
+ * @struct DMA, Tag for Direct Memory Access working mode.
+ * 
+ * In DMA mode, data transfer is handled by the DMA controller,
+ * freeing the CPU for other tasks. Most efficient for large transfers.
  */
 struct DMA {};
 
@@ -35,7 +47,7 @@ struct DMA {};
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Config.hpp>
  * 
