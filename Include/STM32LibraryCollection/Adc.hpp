@@ -8,7 +8,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "Utility.hpp"
+#include "__Internal/__Utility.hpp"
 
 #include "main.h"
 
@@ -73,7 +73,7 @@ concept IsAdcResolution =
  * @example An ADC value of 2048 (12-bit) maps to MaxV/2.
  */
 template <std::uint32_t MaxV>
-struct AdcOutputMax : Range<double, 0., static_cast<double>(MaxV)> {};
+struct AdcOutputMax : __Internal::__Range<double, 0., static_cast<double>(MaxV)> {};
 
 /**
  * @brief IsAdcOutputMax, A concept to check if a type is a AdcOutputMax.
@@ -90,7 +90,7 @@ struct AdcOutputMax : Range<double, 0., static_cast<double>(MaxV)> {};
  */
 template <typename T>
 concept IsAdcOutputMax =
-    IsRange<T> &&
+    __Internal::__IsRange<T> &&
     std::same_as<typename T::ValueTypeT, double>;
 
 /**
@@ -99,7 +99,7 @@ concept IsAdcOutputMax =
  * @tparam SizeV    Size of the median filter (must be odd and >= 1).
  */
 template <std::uint32_t SizeV>
-struct AdcMedianFilterSize : Constant<std::uint32_t, SizeV> {
+struct AdcMedianFilterSize : __Internal::__Constant<std::uint32_t, SizeV> {
     static_assert(
         SizeV % 2 != 0,
         "Median filter size must be an odd number!"
@@ -125,7 +125,7 @@ struct AdcMedianFilterSize : Constant<std::uint32_t, SizeV> {
  */
 template <typename T>
 concept IsAdcMedianFilterSize =
-    IsConstant<T> &&
+    __Internal::__IsConstant<T> &&
     std::same_as<typename T::ValueTypeT, std::uint32_t> &&
     (T::value % 2 != 0) &&
     (1 <= T::value);
@@ -136,7 +136,7 @@ concept IsAdcMedianFilterSize =
  * @tparam TimeoutV    Timeout value in milliseconds.
  */
 template <std::uint32_t TimeoutV>
-struct AdcTimeout : Constant<std::uint32_t, TimeoutV> { };
+struct AdcTimeout : __Internal::__Constant<std::uint32_t, TimeoutV> { };
 
 /**
  * @brief IsAdcTimeout, A concept to check if a type is a AdcTimeout.
@@ -153,7 +153,7 @@ struct AdcTimeout : Constant<std::uint32_t, TimeoutV> { };
  */
 template <typename T>
 concept IsAdcTimeout =
-    IsConstant<T> &&
+    __Internal::__IsConstant<T> &&
     std::same_as<typename T::ValueTypeT, std::uint32_t>;
 
 /**

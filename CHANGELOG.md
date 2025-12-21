@@ -2,6 +2,12 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Utility: Implement callback manager for STM32 HAL peripherals.
+
++ **[ENHANCEMENT]** Utility: Add STM32_UNIQUE_TAG for unique tag type generation.
+
++ **[ENHANCEMENT]** Utility: Reorganize Utility functions into separate internal headers.
+
 + **[ENHANCEMENT]** Adc: Enhance Adc class with more readable template parameters and improved documentation.
 
 + **[ENHANCEMENT]** Dac: Enhance Dac class with more readable template parameters and better documentation.
