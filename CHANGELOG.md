@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Uart: Enhance Uart class with supporting different working modes, callbacks, and improved documentation.
+
 + **[ENHANCEMENT]** Utility: Implement callback manager for STM32 HAL peripherals.
 
 + **[ENHANCEMENT]** Utility: Add STM32_UNIQUE_TAG for unique tag type generation.
