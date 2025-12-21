@@ -4,10 +4,12 @@
 #ifndef STM32_UART_HPP
 #define STM32_UART_HPP
 
+#include <algorithm>
 #include <array>
 #include <concepts>
 #include <cstdint>
 #include <limits>
+#include <ranges>
 
 #include "Config.hpp"
 #include "__Internal/__Utility.hpp"
@@ -27,11 +29,13 @@
 #endif /* module check */
 
 namespace STM32 {
+
 /**
- * @struct UartTimeout, A utility struct to hold UART transmit timeout value.
+ * @struct UartTimeout, A utility struct to hold the UART operation timeout value.
  * 
- * @tparam TimeoutV   Transmit timeout value in milliseconds.
- * @example Usage;
+ * @tparam TimeoutV   UART operation timeout value in milliseconds.
+ *
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Uart.hpp>
  *
@@ -52,7 +56,7 @@ struct UartTimeout : __Internal::__Constant<std::uint32_t, TimeoutV> {
  * 
  * @tparam T        Type to be checked.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Uart.hpp>
  * 
@@ -67,6 +71,37 @@ concept IsUartTimeout =
     T::value > 0;
 
 /**
+ * @brief IsUartMessage, A concept to check if a type is a valid UART message buffer.
+ * 
+ * Valid types must be:
+ * - Contiguous range (data stored in continuous memory)
+ * - Sized range (size() is available)
+ * - char value type
+ * 
+ * @tparam T        Type to be checked.
+ * 
+ * @note Accepts both fixed-size containers (std::array) and dynamic containers
+ *       (std::vector, std::string). Buffer sizes exceeding 65535 bytes will be
+ *       silently clamped to 65535 (std::uint16_t max) during transmission/reception.
+ * 
+ * @example Usage:
+ * @code {.cpp}
+ * #include <STM32LibraryCollection/Uart.hpp>
+ * static_assert(STM32::IsUartMessage<std::array<char, 100>>);   // OK
+ * static_assert(STM32::IsUartMessage<std::vector<char>>);       // OK
+ * static_assert(STM32::IsUartMessage<std::string>);             // OK
+ * static_assert(!STM32::IsUartMessage<std::array<int, 100>>);   // Fails: not char
+ * static_assert(!STM32::IsUartMessage<int>);                    // Fails: not a range
+ * @endcode
+ */
+template <typename T>
+concept IsUartMessage =
+    std::ranges::sized_range<T> &&
+    std::ranges::contiguous_range<T> &&
+    std::same_as<std::ranges::range_value_t<T>, char> &&
+    std::same_as<std::ranges::range_size_t<T>, std::size_t>;
+
+/**
  * @class Uart, A class to manage UART functionality on STM32 microcontrollers.
  * 
  * @tparam WorkingModeT         Working mode of the UART
@@ -76,7 +111,7 @@ concept IsUartTimeout =
  *
  * @note Uart class is non-copyable and non-movable.
  *
- * @example Usage;
+ * @example Usage:
  * @code {.cpp}
  * #include <STM32LibraryCollection/Uart.hpp>
  *
@@ -102,17 +137,13 @@ concept IsUartTimeout =
  * });
  *
  * // 2. Override mode per-operation: use Blocking for TX, keep DMA for RX
- * uart1.Transmit<100, STM32::WorkingMode::Blocking>(tx_message);
+ * uart1.Transmit<STM32::WorkingMode::Blocking>(tx_message);
  *
  * // 3. Blocking mode with custom timeout (500ms)
- * uart1.Transmit<100, STM32::WorkingMode::Blocking, STM32::UartTimeout<500>>(tx_message);
- * uart1.ReceiveTo<100, STM32::WorkingMode::Blocking, STM32::UartTimeout<500>>(rx_message);
+ * uart1.Transmit<STM32::WorkingMode::Blocking, STM32::UartTimeout<500>>(tx_message);
+ * uart1.ReceiveTo<STM32::WorkingMode::Blocking, STM32::UartTimeout<500>>(rx_message);
  *
- * // 4. Partial transmit/receive (only 50 bytes)
- * uart1.Transmit(tx_message, [](){}, 50);
- * uart1.ReceiveTo(rx_message, [](){}, 50);
- *
- * // 5. Access underlying HAL handle if needed
+ * // 4. Access underlying HAL handle if needed
  * auto& handle = uart1.GetHandle();
  * @endcode
  */
@@ -186,34 +217,29 @@ public:
     /**
      * @brief Receive data into the provided message buffer in blocking mode.
      * 
-     * @tparam MessageLengthV   Length of the message buffer.
      * @tparam RxWorkingModeT   Working mode for receiving (default is WorkingModeT).
      * @tparam TimeoutV         Timeout for blocking mode (default is 100ms).
      * 
-     * @param rx_message        Array to store the received message.
-     * @param size              Number of bytes to receive (default is MessageLengthV).
+     * @param rx_message        A contiguous range to store the received message.
      * 
      * @returns True on success, false otherwise.
+     *
+     * @warning Buffer sizes exceeding 65535 bytes are silently clamped to 65535.
+     *          Only the first 65535 bytes will be received for oversized buffers.
      */
     template <
-        std::size_t MessageLengthV,
         IsWorkingMode RxWorkingModeT = WorkingModeT,
         IsUartTimeout TimeoutV = UartTimeout<100>
     >
     bool ReceiveTo(
-        std::array<char, MessageLengthV>& rx_message,
-        std::uint16_t size = MessageLengthV
+        IsUartMessage auto& rx_message
     ) noexcept
     requires std::same_as<RxWorkingModeT, WorkingMode::Blocking>
     {
-        static_assert(
-            MessageLengthV <= std::numeric_limits<std::uint16_t>::max(),
-            "MessageLengthV must be less than or equal to std::uint16_t max value"
-        );
         return (HAL_OK == HAL_UART_Receive(
             &m_handle,
-            reinterpret_cast<std::uint8_t*>(rx_message.data()),
-            size,
+            reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
+            Uart::ClampSize(std::ranges::size(rx_message)),
             TimeoutV::value
         ));
     }
@@ -221,44 +247,39 @@ public:
     /**
      * @brief Receive data into the provided message buffer in non-blocking mode.
      * 
-     * @tparam MessageLengthV   Length of the message buffer.
      * @tparam RxWorkingModeT   Working mode for receiving (default is WorkingModeT).
      * 
-     * @param rx_message        Array to store the received message.
+     * @param rx_message        A contiguous range to store the received message.
      * @param complete_callback Callback function to be called upon completion.
-     * @param size              Number of bytes to receive (default is MessageLengthV).
      * 
      * @returns True on success, false otherwise.
+     * 
+     * @warning Buffer sizes exceeding 65535 bytes are silently clamped to 65535.
+     *          Only the first 65535 bytes will be received for oversized buffers.
      */
     template <
-        std::size_t MessageLengthV,
         IsWorkingMode RxWorkingModeT = WorkingModeT
     >
     bool ReceiveTo(
-        std::array<char, MessageLengthV>& rx_message,
-        CallbackT&& complete_callback = [](){},
-        std::uint16_t size = MessageLengthV
+        IsUartMessage auto& rx_message,
+        CallbackT&& complete_callback = [](){}
     ) noexcept
     requires (!std::same_as<RxWorkingModeT, WorkingMode::Blocking>)
     {
-        static_assert(
-            MessageLengthV <= std::numeric_limits<std::uint16_t>::max(),
-            "MessageLengthV must be less than or equal to std::uint16_t max value"
-        );
         UartCallbackManagerT::RegisterReceiveCompleteCallback(
             std::move(complete_callback)
         );
         if constexpr (std::same_as<RxWorkingModeT, WorkingMode::Interrupt>){
             return (HAL_OK == HAL_UART_Receive_IT(
                 &m_handle,
-                reinterpret_cast<std::uint8_t*>(rx_message.data()),
-                size
+                reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
+                Uart::ClampSize(std::ranges::size(rx_message))
             ));
         } else if constexpr (std::same_as<RxWorkingModeT, WorkingMode::DMA>){
             return (HAL_OK == HAL_UART_Receive_DMA(
                 &m_handle,
-                reinterpret_cast<std::uint8_t*>(rx_message.data()),
-                size
+                reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
+                Uart::ClampSize(std::ranges::size(rx_message))
             ));
         }
     }
@@ -266,38 +287,31 @@ public:
     /**
      * @brief Transmit data from the provided message buffer in blocking mode.
      * 
-     * @tparam MessageLengthV   Length of the message buffer.
      * @tparam TxWorkingModeT   Working mode for transmitting (default is WorkingModeT).
      * @tparam TimeoutV         Timeout for blocking mode (default is 100ms).
      * 
-     * @param tx_message        Array containing the message to transmit.
-     * @param size              Number of bytes to transmit (default is MessageLengthV).
+     * @param tx_message        A contiguous range containing the message to transmit.
      * 
      * @returns True on success, false otherwise.
+     * 
+     * @warning Buffer sizes exceeding 65535 bytes are silently clamped to 65535.
+     *          Only the first 65535 bytes will be transmitted for oversized buffers.
      */
     template <
-        std::size_t MessageLengthV,
         IsWorkingMode TxWorkingModeT = WorkingModeT,
         IsUartTimeout TimeoutV = UartTimeout<100>
     >
     bool Transmit(
-        const std::array<char, MessageLengthV>& tx_message,
-        std::uint16_t size = MessageLengthV
+        const IsUartMessage auto& tx_message
     ) noexcept
     requires std::same_as<TxWorkingModeT, WorkingMode::Blocking>
     {
-        static_assert(
-            MessageLengthV <= std::numeric_limits<std::uint16_t>::max(),
-            "MessageLengthV must be less than or equal to std::uint16_t max value"
-        );
         return (HAL_OK == HAL_UART_Transmit(
             &m_handle,
             reinterpret_cast<std::uint8_t*>(
-                const_cast<char *>(
-                    tx_message.data()
-                )
+                const_cast<char *>(std::ranges::data(tx_message))
             ),
-            size,
+            Uart::ClampSize(std::ranges::size(tx_message)),
             TimeoutV::value
         ));
     }
@@ -305,30 +319,25 @@ public:
     /**
      * @brief Transmit data from the provided message buffer in non-blocking mode.
      * 
-     * @tparam MessageLengthV    Length of the message buffer.
-     * @tparam TxWorkingModeT   Working mode for transmitting (default is WorkingModeT).
+     * @tparam TxWorkingModeT    Working mode for transmitting (default is WorkingModeT).
      * 
-     * @param tx_message         Array containing the message to transmit.
+     * @param tx_message         A contiguous range containing the message to transmit.
      * @param complete_callback  Callback function to be called upon completion.
-     * @param size               Number of bytes to transmit (default is MessageLengthV).
      * 
      * @returns True on success, false otherwise.
+     * 
+     * @warning Buffer sizes exceeding 65535 bytes are silently clamped to 65535.
+     *          Only the first 65535 bytes will be transmitted for oversized buffers.
      */
     template <
-        std::size_t MessageLengthV,
         IsWorkingMode TxWorkingModeT = WorkingModeT
     >
     bool Transmit(
-        const std::array<char, MessageLengthV>& tx_message,
-        [[maybe_unused]] CallbackT&& complete_callback = [](){},
-        std::uint16_t size = MessageLengthV
+        const IsUartMessage auto& tx_message,
+        CallbackT&& complete_callback = [](){}
     ) noexcept
     requires (!std::same_as<TxWorkingModeT, WorkingMode::Blocking>)
     {
-        static_assert(
-            MessageLengthV <= std::numeric_limits<std::uint16_t>::max(),
-            "MessageLengthV must be less than or equal to std::uint16_t max value"
-        );
         UartCallbackManagerT::RegisterTransmitCompleteCallback(
             std::move(complete_callback)
         );
@@ -336,27 +345,41 @@ public:
             return (HAL_OK == HAL_UART_Transmit_IT(
                 &m_handle,
                 reinterpret_cast<std::uint8_t*>(
-                    const_cast<char *>(
-                        tx_message.data()
-                    )
+                    const_cast<char *>(std::ranges::data(tx_message))
                 ),
-                size
+                Uart::ClampSize(std::ranges::size(tx_message))
             ));
         } else if constexpr (std::same_as<TxWorkingModeT, WorkingMode::DMA>){
             return (HAL_OK == HAL_UART_Transmit_DMA(
                 &m_handle,
                 reinterpret_cast<std::uint8_t*>(
-                    const_cast<char *>(
-                        tx_message.data()
-                    )
+                    const_cast<char *>(std::ranges::data(tx_message))
                 ),
-                size
+                Uart::ClampSize(std::ranges::size(tx_message))
             ));
         }
     }
 
 private:
     UART_HandleTypeDef& m_handle;
+
+    /**
+     * @brief Clamp size to std::uint16_t range.
+     * 
+     * @param size  Size to be clamped.
+     * 
+     * @returns Clamped size as std::uint16_t.
+     */
+    static constexpr std::uint16_t ClampSize(std::size_t size) noexcept
+    {
+        return static_cast<std::uint16_t>(
+            std::clamp(
+                size,
+                static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::min()),
+                static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())
+            )
+        );
+    }
 };
 
 } /* namespace STM32 */
