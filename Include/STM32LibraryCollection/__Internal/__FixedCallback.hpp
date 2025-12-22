@@ -23,7 +23,7 @@ namespace __Internal {
  * 
  * @tparam CapacityV     Size of the internal buffer in bytes (default: 64).
  *                       Must be large enough to hold the callable and its captures.
- * @tparam AlignmentV    AlignmentV of the internal buffer (default: max alignment).
+ * @tparam AlignmentV    Alignment requirement of the internal buffer in bytes (default: max alignment).
  * 
  * If a callable exceeds the capacity, a static_assert will trigger at compile time.
  * 
