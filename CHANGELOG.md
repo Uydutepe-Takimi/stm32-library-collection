@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Utility: Introduce __FixedCallback for fixed-size callable wrappers replacing std::function.
+
 + **[DOCUMENTATION]** Docs: Refactor documentation and improve clarity.
 
 + **[ENHANCEMENT]** Uart: Enhance Uart class with supporting different working modes, callbacks, and improved documentation.

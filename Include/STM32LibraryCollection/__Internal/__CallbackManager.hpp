@@ -4,7 +4,7 @@
 #ifndef STM32_CALLBACK_MANAGER_HPP
 #define STM32_CALLBACK_MANAGER_HPP
 
-#include <functional>
+#include "__FixedCallback.hpp"
 
 namespace STM32 {
 
@@ -13,10 +13,11 @@ namespace __Internal {
 /**
  * @class __CallbackManager, A static callback manager for STM32 HAL peripherals.
  * 
- * This class provides a bridge between user-defined C++ callbacks (lambdas, 
- * std::function) and STM32 HAL C-style callback functions. Each unique 
- * instantiation (via UniqueTagT) creates independent static storage for 
- * callbacks, allowing multiple peripheral instances to have separate callbacks.
+ * This class provides a bridge between user-defined C++ callbacks (lambdas,
+ * functors) and STM32 HAL C-style callback functions. Uses __FixedCallback
+ * internally to avoid heap allocation. Each unique instantiation (via UniqueTagT)
+ * creates independent static storage for callbacks, allowing multiple peripheral
+ * instances to have separate callbacks.
  * 
  * @tparam HandleT      Type of the HAL peripheral handle (e.g., UART_HandleTypeDef).
  * @tparam UniqueTagT   Unique tag type to differentiate multiple instances.
@@ -150,9 +151,9 @@ class __CallbackManager {
 public:
 
     /**
-     * @typedef CallbackT, type alias for callback functions.
+     * @typedef CallbackT, Non-allocating callback type for embedded systems.
      */
-    using CallbackT = std::function<void()>;
+    using CallbackT = __FixedCallback<>;
 
     /**
      * @brief Register a callback for receive completion.
