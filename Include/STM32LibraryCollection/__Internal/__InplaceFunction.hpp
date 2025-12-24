@@ -1,8 +1,8 @@
 /* SPDX-FileCopyrightText: Copyright (c) 2022-2025 Oğuz Toraman <oguz.toraman@tutanota.com> */
 /* SPDX-License-Identifier: LGPL-3.0-only */
 
-#ifndef STM32_FIXED_CALLBACK_HPP
-#define STM32_FIXED_CALLBACK_HPP
+#ifndef STM32_INPLACE_FUNCTION_HPP
+#define STM32_INPLACE_FUNCTION_HPP
 
 #include <concepts>
 #include <cstddef>
@@ -15,11 +15,11 @@ namespace STM32 {
 namespace __Internal {
 
 /**
- * @class __FixedCallback, A non-allocating callable wrapper for embedded systems.
+ * @class __InplaceFunction, A non-allocating callable wrapper for embedded systems.
  * 
  * This class provides std::function-like type erasure for callables (lambdas,
  * function pointers, functors) without heap allocation. The callable is stored
- * in a fixed-size internal buffer.
+ * in a fixed-size internal buffer (similar to std::inplace_function proposal).
  * 
  * @tparam CapacityV     Size of the internal buffer in bytes (default: 64).
  *                       Must be large enough to hold the callable and its captures.
@@ -41,31 +41,31 @@ namespace __Internal {
  * 
  * @example Usage:
  * @code {.cpp}
- * __FixedCallback<> cb1 = []() { doSomething(); };  // OK - empty lambda
+ * __InplaceFunction<> cb1 = []() { doSomething(); };  // OK - empty lambda
  * 
  * int* ptr = &some_value;
- * __FixedCallback<> cb2 = [ptr]() { *ptr = 42; };  // OK - single pointer
+ * __InplaceFunction<> cb2 = [ptr]() { *ptr = 42; };  // OK - single pointer
  * 
  * // Large capture - increase capacity or reduce captures
  * std::array<int, 100> big_data{};
- * __FixedCallback<512> cb3 = [big_data]() { useBigData(big_data); };  // OK with larger capacity
- * // __FixedCallback<32> cb4 = [big_data]() {};  // Compile error! Too large
+ * __InplaceFunction<512> cb3 = [big_data]() { useBigData(big_data); };  // OK with larger capacity
+ * // __InplaceFunction<32> cb4 = [big_data]() {};  // Compile error! Too large
  * @endcode
  */
 template <std::size_t CapacityV = 64, std::size_t AlignmentV = alignof(std::max_align_t)>
-class __FixedCallback {
+class __InplaceFunction {
 public:
 
     /**
-     * @brief Default constructor, creates an empty (null) callback.
+     * @brief Default constructor, creates an empty (null) function.
      */
-    __FixedCallback() noexcept = default;
+    __InplaceFunction() noexcept = default;
 
     /**
      * @brief Construct from nullptr.
      */
-    __FixedCallback(std::nullptr_t) noexcept
-       : __FixedCallback{}
+    __InplaceFunction(std::nullptr_t) noexcept
+       : __InplaceFunction{}
     { }
 
     /**
@@ -77,23 +77,23 @@ public:
      * @note Fails at compile time if sizeof(F) > CapacityV.
      */
     template <typename F>
-    __FixedCallback(F&& f) noexcept
+    __InplaceFunction(F&& f) noexcept
     requires std::invocable<F> && 
-        (!std::same_as<std::decay_t<F>, __FixedCallback>)
+        (!std::same_as<std::decay_t<F>, __InplaceFunction>)
     {
         using DecayedF = std::decay_t<F>;
         static_assert(
             sizeof(DecayedF) <= CapacityV,
-            "Callback captures too large for fixed buffer! "
-            "Reduce captures or increase __FixedCallback capacity."
+            "Callable captures too large for fixed buffer! "
+            "Reduce captures or increase __InplaceFunction capacity."
         );
         static_assert(
             alignof(DecayedF) <= AlignmentV,
-            "Callback alignment requirement exceeds buffer alignment!"
+            "Callable alignment requirement exceeds buffer alignment!"
         );
         static_assert(
             std::is_nothrow_move_constructible_v<DecayedF>,
-            "Callback must be nothrow move constructible for embedded safety."
+            "Callable must be nothrow move constructible for embedded safety."
         );
         std::construct_at(
             reinterpret_cast<DecayedF*>(m_storage),
@@ -117,7 +117,7 @@ public:
     /**
      * @brief Destructor, destroys the stored callable if any.
      */
-    ~__FixedCallback()
+    ~__InplaceFunction()
     {
         Reset();
     }
@@ -125,9 +125,9 @@ public:
     /**
      * @brief Move constructor.
      * 
-     * @param other     Callback to move from (becomes null after move).
+     * @param other     Function to move from (becomes null after move).
      */
-    __FixedCallback(__FixedCallback&& other) noexcept
+    __InplaceFunction(__InplaceFunction&& other) noexcept
       : m_invoke{other.m_invoke},
         m_destroy{other.m_destroy},
         m_move{other.m_move}
@@ -143,11 +143,11 @@ public:
     /**
      * @brief Move assignment operator.
      * 
-     * @param other     Callback to move from (becomes null after move).
+     * @param other     Function to move from (becomes null after move).
      *
      * @returns         Reference to this.
      */
-    __FixedCallback& operator=(__FixedCallback&& other) noexcept
+    __InplaceFunction& operator=(__InplaceFunction&& other) noexcept
     {
         if (this != &other) {
             Reset();
@@ -168,16 +168,16 @@ public:
      * @defgroup Deleted copy members to prevent unintended duplication.
      * @{
      */
-    __FixedCallback(const __FixedCallback&) = delete;
-    __FixedCallback& operator=(const __FixedCallback&) = delete;
+    __InplaceFunction(const __InplaceFunction&) = delete;
+    __InplaceFunction& operator=(const __InplaceFunction&) = delete;
     /** @} */
 
     /**
-     * @brief Assign nullptr, clearing the callback.
+     * @brief Assign nullptr, clearing the function.
      * 
      * @returns     Reference to this.
      */
-    __FixedCallback& operator=(std::nullptr_t) noexcept
+    __InplaceFunction& operator=(std::nullptr_t) noexcept
     {
         Reset();
         return *this;
@@ -192,19 +192,19 @@ public:
      * @returns     Reference to this.
      */
     template <typename F>
-    __FixedCallback& operator=(F&& f) noexcept
+    __InplaceFunction& operator=(F&& f) noexcept
     requires std::invocable<F> && 
-             (!std::same_as<std::decay_t<F>, __FixedCallback>)
+             (!std::same_as<std::decay_t<F>, __InplaceFunction>)
     {
         Reset();
-        *this = __FixedCallback(std::forward<F>(f));
+        *this = __InplaceFunction(std::forward<F>(f));
         return *this;
     }
 
     /**
      * @brief Invoke the stored callable.
      * 
-     * @note Does nothing if the callback is null (safe to call on empty callback).
+     * @note Does nothing if the function is null (safe to call on empty function).
      */
     void operator()() const noexcept
     {
@@ -247,4 +247,4 @@ private:
 
 } /* namespace STM32 */
 
-#endif /* STM32_FIXED_CALLBACK_HPP */
+#endif /* STM32_INPLACE_FUNCTION_HPP */

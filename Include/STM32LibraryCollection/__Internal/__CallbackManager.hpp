@@ -4,7 +4,7 @@
 #ifndef STM32_CALLBACK_MANAGER_HPP
 #define STM32_CALLBACK_MANAGER_HPP
 
-#include "__FixedCallback.hpp"
+#include "__InplaceFunction.hpp"
 
 namespace STM32 {
 
@@ -153,7 +153,7 @@ public:
     /**
      * @typedef CallbackT, Non-allocating callback type for embedded systems.
      */
-    using CallbackT = __FixedCallback<>;
+    using CallbackT = __InplaceFunction<>;
 
     /**
      * @brief Register a callback for receive completion.

@@ -11,7 +11,7 @@
  * This header provides a convenient single include for all internal utilities:
  * - __CallbackManager: Bridge between C++ callbacks and HAL C-style callbacks.
  * - __Constant: Compile-time constant value wrapper.
- * - __FixedCallback: Non-allocating callable wrapper for embedded systems.
+ * - __InplaceFunction: Non-allocating callable wrapper for embedded systems.
  * - __Range: Compile-time numeric range definition.
  * - __UniqueTag: Unique type generation for template differentiation.
  * 
@@ -21,7 +21,7 @@
 
 #include "__CallbackManager.hpp"
 #include "__Constant.hpp"
-#include "__FixedCallback.hpp"
+#include "__InplaceFunction.hpp"
 #include "__Range.hpp"
 #include "__UniqueTag.hpp"
 

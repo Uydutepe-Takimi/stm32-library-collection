@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Utility: Rename __FixedCallback to __InplaceFunction.
+
 + **[ENHANCEMENT]** Utility: Introduce __FixedCallback for fixed-size callable wrappers replacing std::function.
 
 + **[DOCUMENTATION]** Docs: Refactor documentation and improve clarity.
