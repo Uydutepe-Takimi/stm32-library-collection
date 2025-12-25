@@ -75,7 +75,6 @@ constexpr TargetT __ClampMessageLength(std::size_t size) noexcept
         )
     );
 }
-}
 
 } /* namespace STM32::__Internal */
 
