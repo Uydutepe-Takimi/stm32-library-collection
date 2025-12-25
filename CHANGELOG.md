@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Utility: Introduce __IsMessage concept and __ClampMessageLength utility for message buffer validation and size clamping.
+
 + **[ENHANCEMENT]** Utility: Make __CallbackManager a self-registering RAII callback manager.
 
 + **[ENHANCEMENT]** Utility: Rename __FixedCallback to __InplaceFunction.

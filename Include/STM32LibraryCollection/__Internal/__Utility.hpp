@@ -12,6 +12,7 @@
  * - __CallbackManager: Self-registering RAII callback manager for HAL peripherals.
  * - __Constant: Compile-time constant value wrapper.
  * - __InplaceFunction: Non-allocating callable wrapper for embedded systems.
+ * - __Message: Message buffer concept and size clamping utility.
  * - __Range: Compile-time numeric range definition.
  * - __UniqueTag: Unique type generation for template differentiation.
  * 
@@ -22,6 +23,7 @@
 #include "__CallbackManager.hpp"
 #include "__Constant.hpp"
 #include "__InplaceFunction.hpp"
+#include "__Message.hpp"
 #include "__Range.hpp"
 #include "__UniqueTag.hpp"
 

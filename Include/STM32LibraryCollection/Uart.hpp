@@ -95,11 +95,7 @@ concept IsUartTimeout =
  * @endcode
  */
 template <typename T>
-concept IsUartMessage =
-    std::ranges::sized_range<T> &&
-    std::ranges::contiguous_range<T> &&
-    std::same_as<std::ranges::range_value_t<T>, char> &&
-    std::same_as<std::ranges::range_size_t<T>, std::size_t>;
+concept IsUartMessage = __Internal::__IsMessage<T, char>;
 
 /**
  * @class Uart, A class to manage UART functionality on STM32 microcontrollers.
@@ -226,7 +222,7 @@ public:
         return (HAL_OK == HAL_UART_Receive(
             &m_handle,
             reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
-            Uart::ClampSize(std::ranges::size(rx_message)),
+            __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(rx_message)),
             TimeoutV::value
         ));
     }
@@ -260,13 +256,13 @@ public:
             return (HAL_OK == HAL_UART_Receive_IT(
                 &m_handle,
                 reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
-                Uart::ClampSize(std::ranges::size(rx_message))
+                __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(rx_message))
             ));
         } else if constexpr (std::same_as<RxWorkingModeT, WorkingMode::DMA>){
             return (HAL_OK == HAL_UART_Receive_DMA(
                 &m_handle,
                 reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
-                Uart::ClampSize(std::ranges::size(rx_message))
+                __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(rx_message))
             ));
         }
     }
@@ -298,7 +294,7 @@ public:
             reinterpret_cast<std::uint8_t*>(
                 const_cast<char *>(std::ranges::data(tx_message))
             ),
-            Uart::ClampSize(std::ranges::size(tx_message)),
+            __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(tx_message)),
             TimeoutV::value
         ));
     }
@@ -334,7 +330,7 @@ public:
                 reinterpret_cast<std::uint8_t*>(
                     const_cast<char *>(std::ranges::data(tx_message))
                 ),
-                Uart::ClampSize(std::ranges::size(tx_message))
+                __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(tx_message))
             ));
         } else if constexpr (std::same_as<TxWorkingModeT, WorkingMode::DMA>){
             return (HAL_OK == HAL_UART_Transmit_DMA(
@@ -342,7 +338,7 @@ public:
                 reinterpret_cast<std::uint8_t*>(
                     const_cast<char *>(std::ranges::data(tx_message))
                 ),
-                Uart::ClampSize(std::ranges::size(tx_message))
+                __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(tx_message))
             ));
         }
     }
@@ -351,24 +347,6 @@ private:
     UART_HandleTypeDef& m_handle;
     TransmitCompleteCallbackT m_transmit_complete_callback;
     ReceiveCompleteCallbackT m_receive_complete_callback;
-
-    /**
-     * @brief Clamp size to std::uint16_t range.
-     * 
-     * @param size  Size to be clamped.
-     * 
-     * @returns Clamped size as std::uint16_t.
-     */
-    static constexpr std::uint16_t ClampSize(std::size_t size) noexcept
-    {
-        return static_cast<std::uint16_t>(
-            std::clamp(
-                size,
-                static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::min()),
-                static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())
-            )
-        );
-    }
 };
 
 } /* namespace STM32 */
