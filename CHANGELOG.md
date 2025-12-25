@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** Utility: Make __CallbackManager a self-registering RAII callback manager.
+
 + **[ENHANCEMENT]** Utility: Rename __FixedCallback to __InplaceFunction.
 
 + **[ENHANCEMENT]** Utility: Introduce __FixedCallback for fixed-size callable wrappers replacing std::function.

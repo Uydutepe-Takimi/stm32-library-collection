@@ -9,7 +9,7 @@
  * @brief Aggregate header for internal utility components.
  * 
  * This header provides a convenient single include for all internal utilities:
- * - __CallbackManager: Bridge between C++ callbacks and HAL C-style callbacks.
+ * - __CallbackManager: Self-registering RAII callback manager for HAL peripherals.
  * - __Constant: Compile-time constant value wrapper.
  * - __InplaceFunction: Non-allocating callable wrapper for embedded systems.
  * - __Range: Compile-time numeric range definition.
