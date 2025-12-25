@@ -95,11 +95,7 @@ concept IsUartTimeout =
  * @endcode
  */
 template <typename T>
-concept IsUartMessage =
-    std::ranges::sized_range<T> &&
-    std::ranges::contiguous_range<T> &&
-    std::same_as<std::ranges::range_value_t<T>, char> &&
-    std::same_as<std::ranges::range_size_t<T>, std::size_t>;
+concept IsUartMessage = __Internal::__IsMessage<T, char>;
 
 /**
  * @class Uart, A class to manage UART functionality on STM32 microcontrollers.
@@ -149,15 +145,20 @@ concept IsUartMessage =
  */
 template <IsWorkingMode WorkingModeT, __Internal::__IsUniqueTag UniqueTagT>
 class Uart {
-    using UartCallbackManagerT = __Internal::__CallbackManager<
-        UART_HandleTypeDef, UniqueTagT
+    using TransmitCompleteCallbackT = __Internal::__CallbackManager<
+        UART_HandleTypeDef, UniqueTagT, STM32_UNIQUE_TAG,
+        HAL_UART_RegisterCallback, HAL_UART_UnRegisterCallback, HAL_UART_TX_COMPLETE_CB_ID
+    >;
+    using ReceiveCompleteCallbackT = __Internal::__CallbackManager<
+        UART_HandleTypeDef, UniqueTagT, STM32_UNIQUE_TAG,
+        HAL_UART_RegisterCallback, HAL_UART_UnRegisterCallback, HAL_UART_RX_COMPLETE_CB_ID
     >;
 public:
 
     /**
      * @typedef CallbackT, Type alias for callback functions.
      */
-    using CallbackT = UartCallbackManagerT::CallbackT;
+    using CallbackT = TransmitCompleteCallbackT::CallbackT;
 
     /**
      * @brief Construct Uart class.
@@ -165,19 +166,10 @@ public:
      * @param handle        Reference to the UART handle.
      */
     explicit Uart(UART_HandleTypeDef& handle) noexcept
-      : m_handle{handle}
-    {
-        HAL_UART_RegisterCallback(
-            &m_handle,
-            HAL_UART_TX_COMPLETE_CB_ID,
-            UartCallbackManagerT::TransmitCompleteCallback
-        );
-        HAL_UART_RegisterCallback(
-            &m_handle,
-            HAL_UART_RX_COMPLETE_CB_ID,
-            UartCallbackManagerT::ReceiveCompleteCallback
-        );
-    }
+      : m_handle{handle},
+        m_transmit_complete_callback{handle},
+        m_receive_complete_callback{handle}
+    { }
 
     /**
      * @defgroup Deleted copy and move members.
@@ -191,19 +183,10 @@ public:
 
     /**
      * @brief Destroy Uart class.
+     * 
+     * @note Callbacks are automatically unregistered via RAII.
      */
-    ~Uart()
-    {
-        HAL_UART_UnRegisterCallback(
-            &m_handle,
-            HAL_UART_TX_COMPLETE_CB_ID
-        );
-        HAL_UART_UnRegisterCallback(
-            &m_handle,
-            HAL_UART_RX_COMPLETE_CB_ID
-        );
-        UartCallbackManagerT::UnRegisterCallbacks();
-    }
+    ~Uart() = default;
 
     /**
      * @returns UART handle reference.
@@ -239,7 +222,7 @@ public:
         return (HAL_OK == HAL_UART_Receive(
             &m_handle,
             reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
-            Uart::ClampSize(std::ranges::size(rx_message)),
+            __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(rx_message)),
             TimeoutV::value
         ));
     }
@@ -266,20 +249,20 @@ public:
     ) noexcept
     requires (!std::same_as<RxWorkingModeT, WorkingMode::Blocking>)
     {
-        UartCallbackManagerT::RegisterReceiveCompleteCallback(
+        m_receive_complete_callback.Set(
             std::move(complete_callback)
         );
         if constexpr (std::same_as<RxWorkingModeT, WorkingMode::Interrupt>){
             return (HAL_OK == HAL_UART_Receive_IT(
                 &m_handle,
                 reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
-                Uart::ClampSize(std::ranges::size(rx_message))
+                __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(rx_message))
             ));
         } else if constexpr (std::same_as<RxWorkingModeT, WorkingMode::DMA>){
             return (HAL_OK == HAL_UART_Receive_DMA(
                 &m_handle,
                 reinterpret_cast<std::uint8_t*>(std::ranges::data(rx_message)),
-                Uart::ClampSize(std::ranges::size(rx_message))
+                __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(rx_message))
             ));
         }
     }
@@ -311,7 +294,7 @@ public:
             reinterpret_cast<std::uint8_t*>(
                 const_cast<char *>(std::ranges::data(tx_message))
             ),
-            Uart::ClampSize(std::ranges::size(tx_message)),
+            __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(tx_message)),
             TimeoutV::value
         ));
     }
@@ -338,7 +321,7 @@ public:
     ) noexcept
     requires (!std::same_as<TxWorkingModeT, WorkingMode::Blocking>)
     {
-        UartCallbackManagerT::RegisterTransmitCompleteCallback(
+        m_transmit_complete_callback.Set(
             std::move(complete_callback)
         );
         if constexpr (std::same_as<TxWorkingModeT, WorkingMode::Interrupt>){
@@ -347,7 +330,7 @@ public:
                 reinterpret_cast<std::uint8_t*>(
                     const_cast<char *>(std::ranges::data(tx_message))
                 ),
-                Uart::ClampSize(std::ranges::size(tx_message))
+                __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(tx_message))
             ));
         } else if constexpr (std::same_as<TxWorkingModeT, WorkingMode::DMA>){
             return (HAL_OK == HAL_UART_Transmit_DMA(
@@ -355,31 +338,15 @@ public:
                 reinterpret_cast<std::uint8_t*>(
                     const_cast<char *>(std::ranges::data(tx_message))
                 ),
-                Uart::ClampSize(std::ranges::size(tx_message))
+                __Internal::__ClampMessageLength<std::uint16_t>(std::ranges::size(tx_message))
             ));
         }
     }
 
 private:
     UART_HandleTypeDef& m_handle;
-
-    /**
-     * @brief Clamp size to std::uint16_t range.
-     * 
-     * @param size  Size to be clamped.
-     * 
-     * @returns Clamped size as std::uint16_t.
-     */
-    static constexpr std::uint16_t ClampSize(std::size_t size) noexcept
-    {
-        return static_cast<std::uint16_t>(
-            std::clamp(
-                size,
-                static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::min()),
-                static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())
-            )
-        );
-    }
+    TransmitCompleteCallbackT m_transmit_complete_callback;
+    ReceiveCompleteCallbackT m_receive_complete_callback;
 };
 
 } /* namespace STM32 */
