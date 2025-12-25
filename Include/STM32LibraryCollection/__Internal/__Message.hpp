@@ -69,12 +69,12 @@ template <std::unsigned_integral TargetT>
 constexpr TargetT __ClampMessageLength(std::size_t size) noexcept
 {
     return static_cast<TargetT>(
-        std::clamp(
+        std::min(
             size,
-            static_cast<std::size_t>(std::numeric_limits<TargetT>::min()),
             static_cast<std::size_t>(std::numeric_limits<TargetT>::max())
         )
     );
+}
 }
 
 } /* namespace STM32::__Internal */
