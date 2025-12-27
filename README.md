@@ -52,7 +52,7 @@ Useful, header-only C++ library collection for STM32 microcontrollers.
 
     + Follow the instructions provided by the STM32CubeIDE for Visual Studio Code extension to set up the project.
 
-    + Click on `STM32CubeIDE` extension icon > `Setup STM32Cube project(s)`, then select your STM32 Board/Device and set the `Toolchain` to `CLANG`.
+    + Click on `STM32CubeIDE` extension icon > `Setup STM32Cube project(s)`, then select your STM32 Board/Device and set the `Toolchain` to `GCC`.
 
     + Rename the `main.c` file to `main.cpp` and update the MX_Application_Src from the CMakeLists.txt file.
 
