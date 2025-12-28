@@ -163,11 +163,6 @@ class Spi {
 public:
 
     /**
-     * @typedef CallbackT, Type alias for callback functions.
-     */
-    using CallbackT = TransmitCompleteCallbackT::CallbackT;
-
-    /**
      * @brief Construct Spi class.
      * 
      * @param handle        Reference to the SPI handle.
