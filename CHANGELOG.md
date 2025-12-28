@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[ENHANCEMENT]** I2C: Add I2c class and related concepts for managing I2C functionality.
+
 + **[ENHANCEMENT]** Spi: Add Spi class and related concepts for managing SPI functionality.
 
 + **[ENHANCEMENT]** Utility: Introduce __IsMessage concept and __ClampMessageLength utility for message buffer validation and size clamping.
