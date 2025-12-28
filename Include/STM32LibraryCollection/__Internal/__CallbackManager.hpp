@@ -8,6 +8,11 @@
 
 namespace STM32 {
 
+/**
+ * @typedef CallbackT, Non-allocating callback type for embedded systems.
+ */
+using CallbackT = __Internal::__InplaceFunction<>;
+
 namespace __Internal {
 
 /**
@@ -49,7 +54,6 @@ namespace __Internal {
  *     ReceiveCompleteCallbackT m_receive_complete_callback;
  * 
  * public:
- *     using CallbackT = TransmitCompleteCallbackT::CallbackT;
  * 
  *     // Constructor just initializes callback members - no manual HAL calls!
  *     explicit MyPeripheral(HAL_HandleTypeDef& handle) noexcept
@@ -88,11 +92,6 @@ template <
 >
 class __CallbackManager {
 public:
-
-    /**
-     * @typedef CallbackT, Non-allocating callback type for embedded systems.
-     */
-    using CallbackT = __InplaceFunction<>;
 
     /**
      * @brief Construct and register with HAL.
