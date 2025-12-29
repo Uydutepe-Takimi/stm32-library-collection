@@ -266,8 +266,8 @@ concept IsCrc16Data =
  *     STM32::Crc16ReflectOutput<false>
  * >;
  * 
- * // Or use predefined aliases
- * using MyCrc = STM32::Crc16CcittFalse;
+ * // Or use a predefined alias
+ * using MyPredefinedCrc = STM32::Crc16CcittFalse;
  * 
  * std::array<std::uint8_t, 10> data{0x01, 0x02, 0x03};
  * auto crc = MyCrc::Calculate(data);
