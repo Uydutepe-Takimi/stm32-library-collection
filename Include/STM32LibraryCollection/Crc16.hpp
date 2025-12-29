@@ -360,7 +360,7 @@ public:
      * 
      * @returns The updated CRC-16 value.
      * 
-     * @note To finalize, XOR with final_xor manually if using this method.
+     * @note To finalize, call Finalize() with the updated CRC value.
      */
     [[nodiscard]]
     static constexpr std::uint16_t Update(
