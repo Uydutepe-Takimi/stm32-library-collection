@@ -2,6 +2,8 @@
 
 ## Next Release
 
++ **[DOCUMENTATION]** Docs: Update copyright years to 2026.
+
 + **[ENHANCEMENT]** Crc16: Implement compile-time configurable CRC-16 calculator with predefined variants.
 
 + **[ENHANCEMENT]** I2C: Add I2c class and related concepts for managing I2C functionality.
